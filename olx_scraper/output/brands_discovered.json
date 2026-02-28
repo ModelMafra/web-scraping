@@ -1,7 +1,7 @@
 [
   {
     "name": "Abarth",
-    "count": 103
+    "count": 104
   },
   {
     "name": "AC",
@@ -41,7 +41,7 @@
   },
   {
     "name": "Audi",
-    "count": 2206
+    "count": 2198
   },
   {
     "name": "Austin",
@@ -73,7 +73,7 @@
   },
   {
     "name": "BMW",
-    "count": 5044
+    "count": 5040
   },
   {
     "name": "Brabus",
@@ -109,7 +109,7 @@
   },
   {
     "name": "Chevrolet",
-    "count": 207
+    "count": 209
   },
   {
     "name": "Chrysler",
@@ -117,7 +117,7 @@
   },
   {
     "name": "Citroën",
-    "count": 2386
+    "count": 2388
   },
   {
     "name": "Cupra",
@@ -125,7 +125,7 @@
   },
   {
     "name": "Dacia",
-    "count": 543
+    "count": 542
   },
   {
     "name": "Daewoo",
@@ -153,7 +153,7 @@
   },
   {
     "name": "DS",
-    "count": 223
+    "count": 224
   },
   {
     "name": "e.GO",
@@ -165,7 +165,7 @@
   },
   {
     "name": "Fiat",
-    "count": 1765
+    "count": 1770
   },
   {
     "name": "Fisker",
@@ -173,7 +173,7 @@
   },
   {
     "name": "Ford",
-    "count": 1902
+    "count": 1903
   },
   {
     "name": "GMC",
@@ -189,7 +189,7 @@
   },
   {
     "name": "Honda",
-    "count": 409
+    "count": 415
   },
   {
     "name": "Hummer",
@@ -197,7 +197,7 @@
   },
   {
     "name": "Hyundai",
-    "count": 690
+    "count": 689
   },
   {
     "name": "Infiniti",
@@ -217,7 +217,7 @@
   },
   {
     "name": "Jeep",
-    "count": 335
+    "count": 334
   },
   {
     "name": "JaguarSport",
@@ -237,7 +237,7 @@
   },
   {
     "name": "Kia",
-    "count": 569
+    "count": 568
   },
   {
     "name": "Lada",
@@ -253,7 +253,7 @@
   },
   {
     "name": "Land Rover",
-    "count": 571
+    "count": 572
   },
   {
     "name": "Lexus",
@@ -285,7 +285,7 @@
   },
   {
     "name": "Mazda",
-    "count": 375
+    "count": 374
   },
   {
     "name": "Mclaren",
@@ -293,11 +293,11 @@
   },
   {
     "name": "Mercedes-Benz",
-    "count": 5365
+    "count": 5362
   },
   {
     "name": "MG",
-    "count": 199
+    "count": 201
   },
   {
     "name": "Microcar",
@@ -305,7 +305,7 @@
   },
   {
     "name": "MINI",
-    "count": 1219
+    "count": 1220
   },
   {
     "name": "Meyers Manx",
@@ -329,7 +329,7 @@
   },
   {
     "name": "Nissan",
-    "count": 1335
+    "count": 1336
   },
   {
     "name": "NSU",
@@ -337,7 +337,7 @@
   },
   {
     "name": "Opel",
-    "count": 2152
+    "count": 2155
   },
   {
     "name": "Outra não listada",
@@ -345,7 +345,7 @@
   },
   {
     "name": "Peugeot",
-    "count": 4680
+    "count": 4693
   },
   {
     "name": "Plymouth",
@@ -357,7 +357,7 @@
   },
   {
     "name": "Porsche",
-    "count": 804
+    "count": 802
   },
   {
     "name": "Pontiac",
@@ -365,7 +365,7 @@
   },
   {
     "name": "Renault",
-    "count": 3841
+    "count": 3851
   },
   {
     "name": "Riley",
@@ -385,7 +385,7 @@
   },
   {
     "name": "Seat",
-    "count": 1494
+    "count": 1497
   },
   {
     "name": "Shelby",
@@ -393,11 +393,11 @@
   },
   {
     "name": "Skoda",
-    "count": 400
+    "count": 403
   },
   {
     "name": "Smart",
-    "count": 673
+    "count": 674
   },
   {
     "name": "SsangYong",
@@ -409,7 +409,7 @@
   },
   {
     "name": "Suzuki",
-    "count": 161
+    "count": 160
   },
   {
     "name": "Tata",
@@ -421,7 +421,7 @@
   },
   {
     "name": "Toyota",
-    "count": 985
+    "count": 983
   },
   {
     "name": "Triumph",
@@ -445,7 +445,7 @@
   },
   {
     "name": "VW",
-    "count": 2862
+    "count": 2870
   },
   {
     "name": "Wiesmann",
@@ -453,6 +453,6 @@
   },
   {
     "name": "Volvo",
-    "count": 937
+    "count": 935
   }
 ]
