@@ -1,5 +1,5 @@
 venv**
 scrape_venv/
 scrapper/.venv/
-/home/pedro/Projetos/Web_Scraping/olx_scraper/output/
-/home/pedro/Projetos/Web_Scraping/olx_scraper/output
+olx_scraper/output/
+
