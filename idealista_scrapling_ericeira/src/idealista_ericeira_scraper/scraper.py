@@ -115,6 +115,7 @@ class IdealistaCrawler:
         config_path: str | None = None,
         mode_override: str | None = None,
         headless_override: bool | None = None,
+        logger=None,
     ) -> None:
         config, paths = load_config(config_path)
         if mode_override:
@@ -135,6 +136,7 @@ class IdealistaCrawler:
             self.paths.journal_file,
         )
         self.output_selection = load_output_selection(self.paths.selection_file)
+        self.logger = logger
 
     def status(self) -> dict:
         pending = len(self.state.indexed_listing_ids - self.state.completed_listing_ids)
@@ -556,6 +558,9 @@ class IdealistaCrawler:
         return page_action
 
     def _log(self, message: str) -> None:
+        if self.logger is not None:
+            self.logger(message)
+            return
         print(message, flush=True)
 
     def _sleep(self) -> None:
