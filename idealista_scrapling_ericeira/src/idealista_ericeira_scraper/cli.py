@@ -51,12 +51,32 @@ def build_parser() -> argparse.ArgumentParser:
     crawl_parser.add_argument("--max-pages", type=int, help="Limita paginas novas na fase discover.")
     crawl_parser.add_argument("--limit", type=int, help="Limita anuncios processados na fase extract.")
 
+    ui_parser = subparsers.add_parser("ui", help="Abre um frontend local para escolher o output.", parents=[common])
+    ui_parser.add_argument("--host", default="127.0.0.1", help="Host onde a UI vai ouvir.")
+    ui_parser.add_argument("--port", type=int, default=8765, help="Porta HTTP da UI.")
+    ui_parser.add_argument(
+        "--no-browser",
+        action="store_true",
+        help="Nao tenta abrir automaticamente o browser.",
+    )
+
     return parser
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
+    if args.command == "ui":
+        from idealista_ericeira_scraper.ui import serve_ui
+
+        serve_ui(
+            host=args.host,
+            port=args.port,
+            config_path=args.config,
+            open_browser=not args.no_browser,
+        )
+        return 0
+
     crawler = IdealistaCrawler(
         config_path=args.config,
         mode_override=args.mode,

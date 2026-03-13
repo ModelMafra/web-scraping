@@ -15,7 +15,9 @@ from idealista_ericeira_scraper.core import (
     TargetConfig,
     append_jsonl,
     build_resume_state,
+    filter_output_record,
     load_config,
+    load_output_selection,
     read_jsonl,
     write_text_file,
 )
@@ -132,6 +134,7 @@ class IdealistaCrawler:
             self.paths.details_output,
             self.paths.journal_file,
         )
+        self.output_selection = load_output_selection(self.paths.selection_file)
 
     def status(self) -> dict:
         pending = len(self.state.indexed_listing_ids - self.state.completed_listing_ids)
@@ -145,6 +148,8 @@ class IdealistaCrawler:
             "fetch_mode": self.config.fetch.mode,
             "proxy_configured": bool(self.config.fetch.proxy or self.config.fetch.proxies_file),
             "proxy_rotation": bool(self.config.fetch.proxies_file),
+            "selection_file": str(self.paths.selection_file),
+            "selected_output_fields": self.output_selection["selected_fields"],
         }
 
     def warmup(
@@ -301,7 +306,10 @@ class IdealistaCrawler:
                         write_text_file(snapshot_path, html, overwrite=self.config.run.snapshot_overwrite)
                         record["html_snapshot_path"] = str(snapshot_path.relative_to(self.paths.root))
 
-                    append_jsonl(self.paths.details_output, record)
+                    append_jsonl(
+                        self.paths.details_output,
+                        filter_output_record(record, self.output_selection["selected_fields"]),
+                    )
                     self.state.completed_listing_ids.add(listing_id)
                     self.state.failure_counts.pop(listing_id, None)
                     self.journal.record(

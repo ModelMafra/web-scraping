@@ -1,0 +1,20 @@
+{
+  "selected_fields": [
+    "listing_id",
+    "url",
+    "target_name",
+    "fetched_at",
+    "title",
+    "address",
+    "price_text",
+    "price_amount_eur",
+    "description",
+    "feature_list",
+    "images",
+    "listing_type",
+    "final_url",
+    "html_snapshot_path"
+  ],
+  "updated_at": "2026-03-13T14:56:53.102785Z",
+  "version": 1
+}

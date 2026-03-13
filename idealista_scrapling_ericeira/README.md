@@ -11,13 +11,15 @@ Projeto base para testar a biblioteca `scrapling` na recolha de anuncios da Idea
 - A Idealista devolveu uma pagina de proteção anti-bot num pedido HTTP simples, por isso o modo default ficou em `stealth`.
 - No teste real de `2026-03-13`, ate `StealthySession` com browser instalado continuou a receber `403` e HTML de `captcha-delivery`, portanto o proximo passo mais provavel e usar proxy residencial ou browser remoto.
 - O banner de cookies atual e gerido por Didomi, e o projeto tenta aceitá-lo automaticamente em modo browser.
+- Existe agora uma UI local simples para escolher os campos que queres guardar no `jsonl`.
 
 ## Estrutura
 
 ```text
 idealista_scrapling_ericeira/
 ├── config/
-│   └── targets.toml
+│   ├── targets.toml
+│   └── extract_fields.json
 ├── data/
 │   ├── details/
 │   │   └── ericeira_ads.jsonl
@@ -30,7 +32,8 @@ idealista_scrapling_ericeira/
 │       ├── cli.py
 │       ├── core.py
 │       ├── parsers.py
-│       └── scraper.py
+│       ├── scraper.py
+│       └── ui.py
 ├── state/
 │   └── journal.jsonl
 └── tests/
@@ -91,6 +94,14 @@ Fluxo recomendado para testar a capacidade real de scraping do Scrapling:
 5. Correr `discover` usando o mesmo `user_data_dir`.
 6. Se o bloqueio desaparecer, avançar depois para `extract`.
 
+Abrir a UI local para escolher os campos do detalhe e correr o scraper:
+
+```bash
+PYTHONPATH=src /home/pedro/Projetos/Web_Scraping/scrape_venv/bin/python -m idealista_ericeira_scraper ui
+```
+
+Isto abre um frontend em `http://127.0.0.1:8765/`, grava a selecao em `config/extract_fields.json` e deixa correr `discover`/`extract` diretamente pelos botoes da UI.
+
 Descobrir anuncios:
 
 ```bash
@@ -121,6 +132,7 @@ PYTHONPATH=src /home/pedro/Projetos/Web_Scraping/scrape_venv/bin/python -m ideal
 
 - `data/discovery/ericeira_listing_index.jsonl`: indice append-only com todos os links descobertos.
 - `data/details/ericeira_ads.jsonl`: detalhe normalizado de cada anuncio.
+- `config/extract_fields.json`: selecao de campos do detalhe guardada pela UI.
 - `state/journal.jsonl`: journal append-only com eventos de `discover` e `extract`.
 - `data/html/<listing_id>.html`: snapshot opcional da pagina para debug e reparse.
 - `config/proxies.example.txt`: exemplo do formato para single proxy ou pool rotativa.

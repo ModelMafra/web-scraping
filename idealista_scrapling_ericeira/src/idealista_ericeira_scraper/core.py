@@ -58,6 +58,7 @@ class AppConfig:
 class ProjectPaths:
     root: Path
     config_file: Path
+    selection_file: Path
     discovery_index: Path
     details_output: Path
     journal_file: Path
@@ -80,6 +81,7 @@ def build_paths(project_root: Path) -> ProjectPaths:
     return ProjectPaths(
         root=project_root,
         config_file=project_root / "config" / "targets.toml",
+        selection_file=project_root / "config" / "extract_fields.json",
         discovery_index=project_root / "data" / "discovery" / "ericeira_listing_index.jsonl",
         details_output=project_root / "data" / "details" / "ericeira_ads.jsonl",
         journal_file=project_root / "state" / "journal.jsonl",
@@ -112,6 +114,7 @@ def load_config(config_path: str | Path | None = None) -> tuple[AppConfig, Proje
     paths = ProjectPaths(
         root=project_root,
         config_file=file_path,
+        selection_file=paths.selection_file,
         discovery_index=paths.discovery_index,
         details_output=paths.details_output,
         journal_file=paths.journal_file,
@@ -152,6 +155,294 @@ def write_text_file(path: Path, content: str, overwrite: bool = False) -> None:
     if path.exists() and not overwrite:
         return
     path.write_text(content, encoding="utf-8")
+
+
+OUTPUT_FIELD_SPECS: tuple[dict[str, Any], ...] = (
+    {
+        "name": "listing_id",
+        "label": "ID do anuncio",
+        "group": "identificacao",
+        "description": "ID unico extraido do URL /imovel/{id}/.",
+        "source_hint": "href do anuncio na pagina de resultados e URL final do detalhe",
+        "required": True,
+        "default": True,
+    },
+    {
+        "name": "url",
+        "label": "URL original",
+        "group": "identificacao",
+        "description": "Link canonico do anuncio usado no extract.",
+        "source_hint": "href dos links /imovel/ na listagem",
+        "required": True,
+        "default": True,
+    },
+    {
+        "name": "target_name",
+        "label": "Target",
+        "group": "identificacao",
+        "description": "Nome interno do target configurado no projeto.",
+        "source_hint": "config/targets.toml",
+        "required": True,
+        "default": True,
+    },
+    {
+        "name": "fetched_at",
+        "label": "Data de captura",
+        "group": "identificacao",
+        "description": "Timestamp UTC de quando o detalhe foi guardado.",
+        "source_hint": "gerado pelo scraper",
+        "required": True,
+        "default": True,
+    },
+    {
+        "name": "title",
+        "label": "Titulo",
+        "group": "anuncio",
+        "description": "Titulo principal do anuncio.",
+        "source_hint": ".main-info__title-main, h1, og:title",
+        "required": False,
+        "default": True,
+    },
+    {
+        "name": "address",
+        "label": "Localizacao",
+        "group": "anuncio",
+        "description": "Zona ou morada curta mostrada na ficha.",
+        "source_hint": ".main-info__title-minor e schema address",
+        "required": False,
+        "default": True,
+    },
+    {
+        "name": "price_text",
+        "label": "Preco texto",
+        "group": "anuncio",
+        "description": "Preco tal como aparece na pagina.",
+        "source_hint": ".info-data-price, .price-container .price e bloco JS com price:",
+        "required": False,
+        "default": True,
+    },
+    {
+        "name": "price_amount_eur",
+        "label": "Preco numerico",
+        "group": "anuncio",
+        "description": "Preco convertido para inteiro em euros.",
+        "source_hint": "normalizacao do texto/preco JS",
+        "required": False,
+        "default": True,
+    },
+    {
+        "name": "description",
+        "label": "Descricao",
+        "group": "anuncio",
+        "description": "Texto principal do anunciante.",
+        "source_hint": "bloco de comentario do anuncio e meta description",
+        "required": False,
+        "default": True,
+    },
+    {
+        "name": "feature_list",
+        "label": "Lista de caracteristicas",
+        "group": "caracteristicas",
+        "description": "Lista crua de caracteristicas visiveis.",
+        "source_hint": ".details-property_features li e .info-features span",
+        "required": False,
+        "default": True,
+    },
+    {
+        "name": "features",
+        "label": "Caracteristicas mapeadas",
+        "group": "caracteristicas",
+        "description": "Mapa chave/valor quando a pagina o permite.",
+        "source_hint": "pares dt/dd e itens no formato chave: valor",
+        "required": False,
+        "default": False,
+    },
+    {
+        "name": "images",
+        "label": "Imagens",
+        "group": "caracteristicas",
+        "description": "Lista de URLs de imagens detetadas no HTML.",
+        "source_hint": "meta og:image, JSON-LD e URLs img*.idealista.pt no HTML",
+        "required": False,
+        "default": True,
+    },
+    {
+        "name": "listing_type",
+        "label": "Tipo de operacao",
+        "group": "origem",
+        "description": "Sale/rent vindo do target.",
+        "source_hint": "config/targets.toml",
+        "required": False,
+        "default": True,
+    },
+    {
+        "name": "property_scope",
+        "label": "Escopo do imovel",
+        "group": "origem",
+        "description": "Categoria configurada para o target.",
+        "source_hint": "config/targets.toml",
+        "required": False,
+        "default": False,
+    },
+    {
+        "name": "page_number",
+        "label": "Pagina descoberta",
+        "group": "origem",
+        "description": "Numero da pagina da listagem onde o anuncio foi encontrado.",
+        "source_hint": "URL da pagina de resultados",
+        "required": False,
+        "default": False,
+    },
+    {
+        "name": "page_url",
+        "label": "URL da listagem",
+        "group": "origem",
+        "description": "Pagina de resultados onde o anuncio foi indexado.",
+        "source_hint": "URL corrente do discover",
+        "required": False,
+        "default": False,
+    },
+    {
+        "name": "position",
+        "label": "Posicao na pagina",
+        "group": "origem",
+        "description": "Ordem relativa do link no HTML da listagem.",
+        "source_hint": "sequencia dos href /imovel/ encontrados",
+        "required": False,
+        "default": False,
+    },
+    {
+        "name": "final_url",
+        "label": "URL final",
+        "group": "origem",
+        "description": "URL final sem query nem fragmentos.",
+        "source_hint": "URL final da resposta",
+        "required": False,
+        "default": True,
+    },
+    {
+        "name": "html_snapshot_path",
+        "label": "Snapshot HTML",
+        "group": "origem",
+        "description": "Caminho para o HTML guardado localmente.",
+        "source_hint": "data/html/<listing_id>.html",
+        "required": False,
+        "default": True,
+    },
+    {
+        "name": "challenge_detected",
+        "label": "Desafio detetado",
+        "group": "tecnico",
+        "description": "Flag interna para HTML de bloqueio/anti-bot.",
+        "source_hint": "heuristica sobre o HTML recebido",
+        "required": False,
+        "default": False,
+    },
+    {
+        "name": "html_sha256",
+        "label": "Hash do HTML",
+        "group": "tecnico",
+        "description": "Hash do HTML para dedupe ou reprocessamento.",
+        "source_hint": "gerado pelo scraper a partir do HTML",
+        "required": False,
+        "default": False,
+    },
+    {
+        "name": "meta",
+        "label": "Meta tags",
+        "group": "tecnico",
+        "description": "Mapa cru das meta tags da pagina.",
+        "source_hint": "tags <meta property=...> e <meta name=...>",
+        "required": False,
+        "default": False,
+    },
+    {
+        "name": "json_ld",
+        "label": "JSON-LD",
+        "group": "tecnico",
+        "description": "Blocos JSON-LD encontrados na pagina.",
+        "source_hint": "scripts type=application/ld+json",
+        "required": False,
+        "default": False,
+    },
+    {
+        "name": "page_text_excerpt",
+        "label": "Excerto de texto",
+        "group": "tecnico",
+        "description": "Excerto do texto visivel da pagina para debug rapido.",
+        "source_hint": "texto combinado do body",
+        "required": False,
+        "default": False,
+    },
+)
+
+OUTPUT_FIELD_NAMES = {spec["name"] for spec in OUTPUT_FIELD_SPECS}
+DEFAULT_OUTPUT_FIELDS = [spec["name"] for spec in OUTPUT_FIELD_SPECS if spec["default"]]
+REQUIRED_OUTPUT_FIELDS = [spec["name"] for spec in OUTPUT_FIELD_SPECS if spec["required"]]
+
+
+def list_output_field_specs() -> list[dict[str, Any]]:
+    return [dict(spec) for spec in OUTPUT_FIELD_SPECS]
+
+
+def normalize_output_fields(selected_fields: list[str] | None = None) -> list[str]:
+    requested = list(selected_fields or DEFAULT_OUTPUT_FIELDS)
+    normalized: list[str] = []
+    for field_name in [*REQUIRED_OUTPUT_FIELDS, *requested]:
+        if field_name not in OUTPUT_FIELD_NAMES or field_name in normalized:
+            continue
+        normalized.append(field_name)
+    return normalized
+
+
+def load_output_selection(path: Path) -> dict[str, Any]:
+    if not path.exists():
+        return {
+            "exists": False,
+            "selected_fields": normalize_output_fields(),
+            "updated_at": None,
+            "version": 1,
+        }
+
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    return {
+        "exists": True,
+        "selected_fields": normalize_output_fields(payload.get("selected_fields")),
+        "updated_at": payload.get("updated_at"),
+        "version": payload.get("version", 1),
+    }
+
+
+def save_output_selection(path: Path, selected_fields: list[str] | None) -> dict[str, Any]:
+    payload = {
+        "selected_fields": normalize_output_fields(selected_fields),
+        "updated_at": utc_now_iso(),
+        "version": 1,
+    }
+    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    return payload
+
+
+def filter_output_record(record: dict[str, Any], selected_fields: list[str] | None) -> dict[str, Any]:
+    chosen = normalize_output_fields(selected_fields)
+    filtered: dict[str, Any] = {}
+    for spec in OUTPUT_FIELD_SPECS:
+        field_name = spec["name"]
+        if field_name not in chosen:
+            continue
+        filtered[field_name] = record.get(field_name)
+
+    for key, value in record.items():
+        if key not in filtered and key not in OUTPUT_FIELD_NAMES:
+            filtered[key] = value
+    return filtered
+
+
+def read_last_jsonl_record(path: Path) -> dict[str, Any] | None:
+    last_record = None
+    for record in read_jsonl(path) or []:
+        last_record = record
+    return last_record
 
 
 @dataclass
