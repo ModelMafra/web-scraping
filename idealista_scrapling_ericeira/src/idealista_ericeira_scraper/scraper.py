@@ -148,10 +148,12 @@ class IdealistaCrawler:
             "pending_listings": pending,
             "failure_counts": dict(self.state.failure_counts),
             "fetch_mode": self.config.fetch.mode,
+            "request_delay_seconds": self.config.run.request_delay_seconds,
             "proxy_configured": bool(self.config.fetch.proxy or self.config.fetch.proxies_file),
             "proxy_rotation": bool(self.config.fetch.proxies_file),
             "selection_file": str(self.paths.selection_file),
             "selected_output_fields": self.output_selection["selected_fields"],
+            "wait_ms": self.config.fetch.wait_ms,
         }
 
     def page_extract(self, target_names: list[str] | None = None, max_pages: int = 1) -> dict:
@@ -159,6 +161,13 @@ class IdealistaCrawler:
         indexed_now = 0
         pages_done = 0
         page_results = []
+        self._log(
+            "[page] Config atual: "
+            f"wait={self.config.fetch.wait_ms}ms, "
+            f"delay={self.config.run.request_delay_seconds}s, "
+            f"network_idle={self.config.fetch.network_idle}, "
+            f"disable_resources={self.config.fetch.disable_resources}"
+        )
 
         with ScraplingClient(self.config.fetch) as client:
             for target in self._selected_targets(target_names):
@@ -386,6 +395,13 @@ class IdealistaCrawler:
 
     def extract(self, target_names: list[str] | None = None, limit: int | None = None) -> dict:
         saved = 0
+        self._log(
+            "[extract] Config atual: "
+            f"wait={self.config.fetch.wait_ms}ms, "
+            f"delay={self.config.run.request_delay_seconds}s, "
+            f"network_idle={self.config.fetch.network_idle}, "
+            f"disable_resources={self.config.fetch.disable_resources}"
+        )
         with ScraplingClient(self.config.fetch) as client:
             for seed in self._iter_index_records(target_names):
                 outcome = self._extract_seed(client, seed, stage="extract", log_prefix="[extract] ")
@@ -530,13 +546,12 @@ class IdealistaCrawler:
         def page_action(page):
             cookies_clicked = dismiss_cookie_banner(page)
             if cookies_clicked:
-                print(f"[cookies] Banner aceite automaticamente em {target_url}.", flush=True)
+                self._log(f"[cookies] Banner aceite automaticamente em {target_url}.")
 
             if manual:
-                print(
+                self._log(
                     "[manual-warmup] Browser aberto em "
                     f"{target_url}. Resolve o desafio manualmente e carrega Enter aqui para continuar.",
-                    flush=True,
                 )
                 try:
                     input()
@@ -547,7 +562,7 @@ class IdealistaCrawler:
                 return None
 
             if manual_seconds > 0:
-                print(
+                self._log(
                     f"[manual-warmup] Browser aberto para {manual_seconds}s em {target_url}. "
                     "Interage manualmente com a pagina se aparecer desafio."
                 )

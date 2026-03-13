@@ -1,5 +1,5 @@
 [run]
-request_delay_seconds = 2.0
+request_delay_seconds = 0.35
 max_retries = 3
 save_html_snapshots = true
 snapshot_overwrite = false
@@ -12,11 +12,11 @@ headless = true
 real_chrome = true
 solve_cloudflare = true
 humanize = true
-network_idle = true
+network_idle = false
 google_search = false
-disable_resources = false
+disable_resources = true
 timeout_ms = 45000
-wait_ms = 2500
+wait_ms = 1200
 locale = "pt-PT"
 # Proxy unico opcional:
 proxy = ""

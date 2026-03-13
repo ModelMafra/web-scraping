@@ -12,7 +12,7 @@ import tomllib
 
 @dataclass(frozen=True)
 class RunConfig:
-    request_delay_seconds: float = 2.0
+    request_delay_seconds: float = 0.35
     max_retries: int = 3
     save_html_snapshots: bool = True
     snapshot_overwrite: bool = False
@@ -27,11 +27,11 @@ class FetchConfig:
     real_chrome: bool = True
     solve_cloudflare: bool = True
     humanize: bool = True
-    network_idle: bool = True
+    network_idle: bool = False
     google_search: bool = False
-    disable_resources: bool = False
+    disable_resources: bool = True
     timeout_ms: int = 45_000
-    wait_ms: int = 2_500
+    wait_ms: int = 1_200
     locale: str = "pt-PT"
     proxy: str = ""
     proxies_file: str = ""

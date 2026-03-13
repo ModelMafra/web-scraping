@@ -65,21 +65,22 @@ UI_HTML = """<!doctype html>
     body {
       margin: 0;
       min-height: 100vh;
-      display: grid;
-      place-items: center;
       background:
         radial-gradient(circle at 12% 18%, rgba(255, 255, 255, 0.72), transparent 20%),
         radial-gradient(circle at 85% 15%, rgba(255, 255, 255, 0.38), transparent 18%),
         linear-gradient(140deg, var(--bg-a) 0%, var(--bg-b) 55%, #f4efe2 100%);
       color: var(--ink);
       font-family: var(--body);
-      padding: 16px;
+      padding: 8px;
+      overflow: auto;
     }
 
     .stage {
-      width: min(1560px, calc(100vw - 32px));
-      height: min(878px, calc(100vh - 32px));
-      aspect-ratio: 16 / 9;
+      width: min(1880px, calc(100vw - 16px));
+      min-height: max(1180px, calc(100vh - 16px));
+      height: auto;
+      aspect-ratio: auto;
+      margin: 0 auto;
       border-radius: 34px;
       background: linear-gradient(160deg, rgba(255,255,255,0.5), rgba(255,255,255,0.18));
       backdrop-filter: blur(18px);
@@ -88,14 +89,13 @@ UI_HTML = """<!doctype html>
       padding: 18px;
       display: grid;
       grid-template-columns: 360px minmax(0, 1fr);
-      grid-template-rows: auto minmax(0, 1.1fr) minmax(0, 0.92fr) auto;
+      grid-template-rows: auto minmax(0, 1.34fr) minmax(320px, 1fr);
       grid-template-areas:
         "hero hero"
         "sidebar activity"
-        "sidebar details"
-        "advanced advanced";
+        "sidebar details";
       gap: 18px;
-      overflow: hidden;
+      overflow: visible;
     }
 
     .panel {
@@ -113,7 +113,7 @@ UI_HTML = """<!doctype html>
       grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
       gap: 18px;
       align-items: center;
-      padding: 24px 28px;
+      padding: 22px 26px;
       background:
         linear-gradient(135deg, rgba(255,255,255,0.88), rgba(213,239,240,0.82)),
         linear-gradient(180deg, rgba(255,255,255,0.75), rgba(255,255,255,0.35));
@@ -143,14 +143,14 @@ UI_HTML = """<!doctype html>
     }
 
     h1 {
-      font-size: clamp(24px, 3.4vw, 44px);
-      line-height: 0.96;
-      max-width: 16ch;
-      margin-bottom: 8px;
+      font-size: clamp(22px, 3vw, 40px);
+      line-height: 0.94;
+      max-width: 12ch;
+      margin-bottom: 6px;
     }
 
     h2 {
-      font-size: 28px;
+      font-size: 32px;
       line-height: 1.02;
     }
 
@@ -200,15 +200,15 @@ UI_HTML = """<!doctype html>
     .sidebar {
       grid-area: sidebar;
       display: grid;
-      grid-template-rows: auto 1fr;
-      gap: 14px;
-      overflow: auto;
-      min-height: 0;
+      grid-template-rows: auto auto auto;
+      gap: 12px;
+      align-content: start;
+      overflow: visible;
     }
 
     .sidebar-block {
       display: grid;
-      gap: 10px;
+      gap: 8px;
     }
 
     .target-grid,
@@ -335,12 +335,22 @@ UI_HTML = """<!doctype html>
     }
 
     .action-card {
-      padding: 13px 14px;
+      padding: 12px 14px;
       display: grid;
-      gap: 8px;
+      gap: 6px;
       background:
         linear-gradient(180deg, rgba(255,255,255,0.94), rgba(255,255,255,0.78)),
         linear-gradient(120deg, rgba(255,239,225,0.8), rgba(213,239,240,0.6));
+    }
+
+    .sidebar-note {
+      border-radius: 20px;
+      border: 1px solid var(--line);
+      background: rgba(15, 107, 114, 0.08);
+      padding: 12px 14px;
+      font-size: 12px;
+      line-height: 1.55;
+      color: var(--accent-deep);
     }
 
     .action-tag,
@@ -408,14 +418,15 @@ UI_HTML = """<!doctype html>
       border-radius: 22px;
       background: linear-gradient(180deg, #0d2430, #102a35);
       color: #ecf4f5;
-      padding: 16px;
+      padding: 18px;
       font-family: var(--mono);
-      font-size: 12px;
-      line-height: 1.6;
+      font-size: 15px;
+      line-height: 1.7;
       overflow: auto;
       white-space: pre-wrap;
       word-break: break-word;
       min-height: 0;
+      min-block-size: 180px;
     }
 
     .right-grid {
@@ -425,6 +436,10 @@ UI_HTML = """<!doctype html>
       gap: 18px;
       min-height: 0;
       align-content: stretch;
+    }
+
+    .right-grid > .panel {
+      overflow: visible;
     }
 
     .latest-card,
@@ -439,20 +454,19 @@ UI_HTML = """<!doctype html>
 
     .latest-main {
       grid-column: 1 / -1;
-      padding: 16px;
+      padding: 14px;
       border-radius: var(--radius-lg);
       background: rgba(255,255,255,0.92);
       border: 1px solid var(--line);
     }
 
     .latest-title {
-      font-size: 26px;
-      line-height: 1.08;
-      margin-bottom: 8px;
+      font-size: 18px;
+      line-height: 1.16;
     }
 
     .mini-card {
-      padding: 14px 16px;
+      padding: 12px 14px;
     }
 
     .mini-label {
@@ -465,19 +479,14 @@ UI_HTML = """<!doctype html>
     }
 
     .mini-value {
-      font-size: 18px;
+      font-size: 16px;
       font-weight: 800;
-      line-height: 1.3;
+      line-height: 1.22;
       word-break: break-word;
     }
 
     .state-grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .advanced {
-      grid-area: advanced;
-      overflow: auto;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 
     details {
@@ -505,15 +514,19 @@ UI_HTML = """<!doctype html>
       letter-spacing: 0.08em;
     }
 
+    .advanced-inline {
+      min-height: 0;
+      padding-top: 2px;
+    }
+
     .advanced-grid {
-      margin-top: 16px;
+      margin-top: 14px;
       display: grid;
-      grid-template-columns: 1.1fr 0.9fr;
-      gap: 18px;
+      gap: 14px;
     }
 
     .field-grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-columns: 1fr;
     }
 
     .command-box {
@@ -559,8 +572,7 @@ UI_HTML = """<!doctype html>
           "hero"
           "sidebar"
           "activity"
-          "details"
-          "advanced";
+          "details";
         overflow: auto;
       }
 
@@ -568,8 +580,7 @@ UI_HTML = """<!doctype html>
       .right-grid,
       .advanced-grid,
       .latest-card,
-      .state-grid,
-      .field-grid {
+      .state-grid {
         grid-template-columns: 1fr;
       }
 
@@ -633,8 +644,41 @@ UI_HTML = """<!doctype html>
             <button id="runPendingBtn" class="ghost">Continuar pendentes</button>
           </article>
         </div>
+        <div class="sidebar-note">
+          Para guardar <strong>todos os dados</strong>, o scraper entra no detalhe de cada anuncio. A pagina de resultados serve para descobrir os links; os campos finais saem da pagina individual de cada imovel.
+        </div>
       </section>
 
+      <section class="sidebar-block advanced-inline">
+        <details>
+          <summary>
+            <span>Campos guardados e opcoes avancadas</span>
+            <span class="summary-note">Opcional</span>
+          </summary>
+          <div class="advanced-grid">
+            <div class="section-copy">
+              <h2>Campos do JSONL</h2>
+              <p class="muted">Se quiseres, ajusta aqui os campos guardados no ficheiro final. Os campos fixos ficam sempre ativos.</p>
+            </div>
+            <div id="fieldGrid" class="field-grid"></div>
+            <div class="toolbar">
+              <button id="saveFieldsBtn" class="primary">Guardar campos</button>
+              <button id="recommendedBtn" class="ghost">Recomendado</button>
+              <button id="minimalBtn" class="ghost">Minimo</button>
+            </div>
+            <div class="section-copy">
+              <h2>Se preferires terminal</h2>
+              <p class="muted">As mesmas acoes tambem podem ser corridas por comando.</p>
+            </div>
+            <div id="commandBox" class="command-box"></div>
+            <div class="helper-stack">
+              <p class="muted"><strong>Sacar 1 pagina</strong>: corre o fluxo mais simples, pagina a pagina, e grava anuncio a anuncio.</p>
+              <p class="muted"><strong>Sacar tudo</strong>: continua automaticamente ate nao existir pagina seguinte.</p>
+              <p class="muted"><strong>Continuar pendentes</strong>: usa o indice atual para retomar sem repetir o que ja foi guardado.</p>
+            </div>
+          </div>
+        </details>
+      </section>
     </aside>
 
     <section class="activity panel">
@@ -668,41 +712,6 @@ UI_HTML = """<!doctype html>
         </div>
         <div id="stateGrid" class="state-grid"></div>
       </article>
-    </section>
-
-    <section class="advanced panel">
-      <details>
-        <summary>
-          <span>Campos guardados e opcoes avancadas</span>
-          <span class="summary-note">Opcional</span>
-        </summary>
-        <div class="advanced-grid">
-          <div>
-            <div class="section-copy">
-              <h2>Campos do JSONL</h2>
-              <p class="muted">Se quiseres, ajusta aqui os campos guardados no ficheiro final. Os campos fixos ficam sempre ativos.</p>
-            </div>
-            <div id="fieldGrid" class="field-grid"></div>
-            <div class="toolbar" style="margin-top: 14px;">
-              <button id="saveFieldsBtn" class="primary">Guardar campos</button>
-              <button id="recommendedBtn" class="ghost">Recomendado</button>
-              <button id="minimalBtn" class="ghost">Minimo</button>
-            </div>
-          </div>
-          <div>
-            <div class="section-copy">
-              <h2>Se preferires terminal</h2>
-              <p class="muted">As acoes rapidas tambem podem ser corridas pelo CLI. Aqui tens os comandos mais uteis.</p>
-            </div>
-            <div id="commandBox" class="command-box"></div>
-            <div class="helper-stack">
-              <p class="muted"><strong>Sacar 1 pagina</strong>: corre o fluxo mais simples, pagina a pagina, e grava anuncio a anuncio.</p>
-              <p class="muted"><strong>Sacar tudo</strong>: continua automaticamente ate nao existir pagina seguinte.</p>
-              <p class="muted"><strong>Continuar pendentes</strong>: usa o indice atual para retomar sem repetir o que ja foi guardado.</p>
-            </div>
-          </div>
-        </div>
-      </details>
     </section>
   </main>
 
@@ -801,7 +810,6 @@ UI_HTML = """<!doctype html>
         <article class="latest-main">
           <div class="mini-label">Titulo</div>
           <div class="latest-title">${escapeHtml(record.title || "Sem titulo")}</div>
-          <p class="muted">${escapeHtml(record.description || "Sem descricao curta disponivel.")}</p>
         </article>
         <article class="mini-card">
           <div class="mini-label">Preco</div>
@@ -819,14 +827,6 @@ UI_HTML = """<!doctype html>
           <div class="mini-label">Data</div>
           <div class="mini-value">${escapeHtml(record.fetched_at || "-")}</div>
         </article>
-        <article class="mini-card">
-          <div class="mini-label">Imagens</div>
-          <div class="mini-value">${escapeHtml(record.images_count || 0)}</div>
-        </article>
-        <article class="mini-card">
-          <div class="mini-label">URL</div>
-          <div class="mini-value">${escapeHtml(record.url || "-")}</div>
-        </article>
       `;
     }
 
@@ -837,8 +837,8 @@ UI_HTML = """<!doctype html>
         ["Concluidos", status.completed_listings],
         ["Pendentes", status.pending_listings],
         ["Campos ativos", state.selection.selected_fields.length],
-        ["Output", state.detail_output],
-        ["Selecao", state.selection_file],
+        ["Delay", `${status.request_delay_seconds}s`],
+        ["Espera browser", `${status.wait_ms} ms`],
       ];
       document.getElementById("stateGrid").innerHTML = fields.map(([label, value]) => `
         <article class="mini-card">
