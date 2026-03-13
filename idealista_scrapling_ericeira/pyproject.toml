@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "idealista-ericeira-scrapling"
+version = "0.1.0"
+description = "Scraper de anuncios da Idealista para Ericeira com Scrapling e retoma por JSONL."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "scrapling[fetchers]>=0.4.2,<0.5",
+]
+
+[project.scripts]
+idealista-ericeira = "idealista_ericeira_scraper.cli:main"
+
+[tool.setuptools.package-dir]
+"" = "src"
+
+[tool.setuptools.packages.find]
+where = ["src"]

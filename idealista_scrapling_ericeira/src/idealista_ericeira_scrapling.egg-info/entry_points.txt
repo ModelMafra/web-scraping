@@ -1,0 +1,2 @@
+[console_scripts]
+idealista-ericeira = idealista_ericeira_scraper.cli:main

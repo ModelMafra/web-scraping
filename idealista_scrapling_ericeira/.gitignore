@@ -1,0 +1,16 @@
+.venv/
+__pycache__/
+*.pyc
+
+data/discovery/*.jsonl
+data/details/*.jsonl
+data/html/*.html
+logs/*
+state/*.json
+state/*.jsonl
+
+!data/discovery/.gitkeep
+!data/details/.gitkeep
+!data/html/.gitkeep
+!logs/.gitkeep
+!state/.gitkeep

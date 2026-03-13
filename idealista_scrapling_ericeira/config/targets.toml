@@ -1,0 +1,33 @@
+[run]
+request_delay_seconds = 2.0
+max_retries = 3
+save_html_snapshots = true
+snapshot_overwrite = false
+stop_on_blocked_response = true
+max_pages_per_target = 0
+
+[fetch]
+mode = "stealth"
+headless = true
+real_chrome = true
+solve_cloudflare = true
+humanize = true
+network_idle = true
+disable_resources = false
+timeout_ms = 45000
+wait_ms = 2500
+locale = "pt-PT"
+# Se a Idealista mantiver 403 em modo stealth, testa um proxy residencial aqui.
+proxy = ""
+
+[[targets]]
+name = "ericeira_buy_homes"
+search_url = "https://www.idealista.pt/comprar-casas/mafra/ericeira/"
+listing_type = "sale"
+property_scope = "homes"
+
+[[targets]]
+name = "ericeira_rent_homes"
+search_url = "https://www.idealista.pt/arrendar-casas/mafra/ericeira/"
+listing_type = "rent"
+property_scope = "homes"
