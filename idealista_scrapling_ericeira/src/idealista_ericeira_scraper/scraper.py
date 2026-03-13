@@ -3,6 +3,8 @@ from __future__ import annotations
 from dataclasses import replace
 from datetime import UTC, datetime
 from pathlib import Path
+import re
+from time import sleep as time_sleep
 from time import sleep
 
 from idealista_ericeira_scraper.config import AppConfig, ProjectPaths, TargetConfig, load_config
@@ -24,6 +26,50 @@ class BlockedResponseError(RuntimeError):
     pass
 
 
+COOKIE_BUTTON_PATTERNS = (
+    re.compile(r"aceitar", re.I),
+    re.compile(r"accept", re.I),
+    re.compile(r"aceptar", re.I),
+    re.compile(r"agree", re.I),
+)
+
+COOKIE_SELECTOR_CANDIDATES = (
+    "button[id*='accept']",
+    "button[class*='accept']",
+    "[id*='cookie'] button",
+    "[class*='cookie'] button",
+    "[id*='consent'] button",
+    "[class*='consent'] button",
+)
+
+
+def dismiss_cookie_banner(page) -> bool:
+    roots = [page, *list(getattr(page, "frames", []))]
+
+    for root in roots:
+        for pattern in COOKIE_BUTTON_PATTERNS:
+            try:
+                locator = root.get_by_role("button", name=pattern)
+                if locator.count() > 0:
+                    locator.first.click(timeout=1_500)
+                    page.wait_for_timeout(700)
+                    return True
+            except Exception:
+                continue
+
+        for selector in COOKIE_SELECTOR_CANDIDATES:
+            try:
+                locator = root.locator(selector)
+                if locator.count() > 0:
+                    locator.first.click(timeout=1_500)
+                    page.wait_for_timeout(700)
+                    return True
+            except Exception:
+                continue
+
+    return False
+
+
 class IdealistaCrawler:
     def __init__(
         self,
@@ -40,6 +86,8 @@ class IdealistaCrawler:
         self.config: AppConfig = config
         self.paths: ProjectPaths = paths
         self.paths.ensure_dirs()
+        if self.config.fetch.user_data_dir:
+            Path(self.config.fetch.user_data_dir).mkdir(parents=True, exist_ok=True)
         self.run_id = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
         self.journal = Journal(self.paths.journal_file, self.run_id)
         self.state = build_resume_state(
@@ -58,7 +106,45 @@ class IdealistaCrawler:
             "pending_listings": pending,
             "failure_counts": dict(self.state.failure_counts),
             "fetch_mode": self.config.fetch.mode,
+            "proxy_configured": bool(self.config.fetch.proxy or self.config.fetch.proxies_file),
+            "proxy_rotation": bool(self.config.fetch.proxies_file),
         }
+
+    def warmup(
+        self,
+        target_names: list[str] | None = None,
+        limit: int = 1,
+        manual_seconds: int = 0,
+        manual: bool = False,
+    ) -> dict:
+        results = []
+        with ScraplingClient(self.config.fetch) as client:
+            for target in self._selected_targets(target_names)[:limit]:
+                page_action = self._build_page_action(
+                    target.search_url,
+                    manual=manual,
+                    manual_seconds=manual_seconds,
+                )
+                response = client.fetch(
+                    target.search_url,
+                    wait_ms=max(self.config.fetch.wait_ms, 2500),
+                    page_action=page_action,
+                )
+                html = response_text(response)
+                status = response_status(response)
+                blocked = (status is not None and status >= 400) or is_blocked_html(html)
+                results.append(
+                    {
+                        "blocked": blocked,
+                        "body_length": len(html),
+                        "http_status": status,
+                        "manual": manual,
+                        "manual_seconds": manual_seconds,
+                        "target_name": target.name,
+                        "url": target.search_url,
+                    }
+                )
+        return {"results": results}
 
     def discover(self, target_names: list[str] | None = None, max_pages: int | None = None) -> dict:
         indexed_now = 0
@@ -76,7 +162,7 @@ class IdealistaCrawler:
                     if self.config.run.max_pages_per_target and target_pages_done >= self.config.run.max_pages_per_target:
                         break
 
-                    response = client.fetch(current_url)
+                    response = client.fetch(current_url, page_action=self._build_page_action(current_url))
                     html = response_text(response)
                     status = response_status(response)
                     if (status is not None and status >= 400) or is_blocked_html(html):
@@ -157,7 +243,7 @@ class IdealistaCrawler:
                     continue
 
                 try:
-                    response = client.fetch(seed["url"])
+                    response = client.fetch(seed["url"], page_action=self._build_page_action(seed["url"]))
                     html = response_text(response)
                     status = response_status(response)
                     if (status is not None and status >= 400) or is_blocked_html(html):
@@ -232,6 +318,46 @@ class IdealistaCrawler:
             return self.config.targets
         selected = set(target_names)
         return [target for target in self.config.targets if target.name in selected]
+
+    def _build_page_action(
+        self,
+        target_url: str,
+        *,
+        manual: bool = False,
+        manual_seconds: int = 0,
+    ):
+        if self.config.fetch.mode == "http":
+            return None
+
+        def page_action(page):
+            cookies_clicked = dismiss_cookie_banner(page)
+            if cookies_clicked:
+                print(f"[cookies] Banner aceite automaticamente em {target_url}.", flush=True)
+
+            if manual:
+                print(
+                    "[manual-warmup] Browser aberto em "
+                    f"{target_url}. Resolve o desafio manualmente e carrega Enter aqui para continuar.",
+                    flush=True,
+                )
+                try:
+                    input()
+                except EOFError as exc:
+                    raise RuntimeError(
+                        "O modo manual requer um terminal interativo. Corre o comando diretamente no teu terminal."
+                    ) from exc
+                return None
+
+            if manual_seconds > 0:
+                print(
+                    f"[manual-warmup] Browser aberto para {manual_seconds}s em {target_url}. "
+                    "Interage manualmente com a pagina se aparecer desafio."
+                )
+                time_sleep(manual_seconds)
+
+            return None
+
+        return page_action
 
     def _sleep(self) -> None:
         if self.config.run.request_delay_seconds > 0:

@@ -23,11 +23,15 @@ class FetchConfig:
     solve_cloudflare: bool = True
     humanize: bool = True
     network_idle: bool = True
+    google_search: bool = False
     disable_resources: bool = False
     timeout_ms: int = 45_000
     wait_ms: int = 2_500
     locale: str = "pt-PT"
     proxy: str = ""
+    proxies_file: str = ""
+    user_data_dir: str = ""
+    cdp_url: str = ""
 
 
 @dataclass(frozen=True)
@@ -90,7 +94,12 @@ def load_config(config_path: str | Path | None = None) -> tuple[AppConfig, Proje
         raw = tomllib.load(handle)
 
     run = RunConfig(**raw.get("run", {}))
-    fetch = FetchConfig(**raw.get("fetch", {}))
+    raw_fetch = dict(raw.get("fetch", {}))
+    for key in ("proxies_file", "user_data_dir"):
+        value = raw_fetch.get(key)
+        if value and not Path(value).expanduser().is_absolute():
+            raw_fetch[key] = str((project_root / value).resolve())
+    fetch = FetchConfig(**raw_fetch)
     targets = [TargetConfig(**item) for item in raw.get("targets", [])]
     if not targets:
         raise ValueError(f"Nenhum target definido em {file_path}")

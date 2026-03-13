@@ -13,12 +13,19 @@ real_chrome = true
 solve_cloudflare = true
 humanize = true
 network_idle = true
+google_search = false
 disable_resources = false
 timeout_ms = 45000
 wait_ms = 2500
 locale = "pt-PT"
-# Se a Idealista mantiver 403 em modo stealth, testa um proxy residencial aqui.
+# Proxy unico opcional:
 proxy = ""
+# Ficheiro opcional com uma proxy por linha. Se tiver mais do que uma, o projeto ativa rotacao.
+proxies_file = ""
+# Perfil persistente para cookies e local storage entre runs.
+user_data_dir = "state/browser_profile"
+# Opcional: liga a um browser remoto por CDP.
+cdp_url = ""
 
 [[targets]]
 name = "ericeira_buy_homes"

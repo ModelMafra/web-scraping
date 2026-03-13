@@ -23,6 +23,21 @@ def build_parser() -> argparse.ArgumentParser:
     status_parser = subparsers.add_parser("status", help="Mostra o estado atual do projeto.", parents=[common])
     status_parser.add_argument("--target", action="append", help="Filtra por target especifico.")
 
+    warmup_parser = subparsers.add_parser("warmup", help="Abre a sessao/browser e testa o acesso ao target.", parents=[common])
+    warmup_parser.add_argument("--target", action="append", help="Filtra por target especifico.")
+    warmup_parser.add_argument("--limit", type=int, default=1, help="Numero de targets a testar nesta corrida.")
+    warmup_parser.add_argument(
+        "--manual",
+        action="store_true",
+        help="Espera por Enter no terminal depois de interagires manualmente com o browser.",
+    )
+    warmup_parser.add_argument(
+        "--manual-seconds",
+        type=int,
+        default=0,
+        help="Mantem a pagina aberta durante N segundos para interacao manual em modo browser.",
+    )
+
     discover_parser = subparsers.add_parser("discover", help="Descobre links de anuncios.", parents=[common])
     discover_parser.add_argument("--target", action="append", help="Filtra por target especifico.")
     discover_parser.add_argument("--max-pages", type=int, help="Limita o numero de paginas descobertas nesta corrida.")
@@ -51,6 +66,13 @@ def main(argv: list[str] | None = None) -> int:
     try:
         if args.command == "status":
             payload = crawler.status()
+        elif args.command == "warmup":
+            payload = crawler.warmup(
+                target_names=args.target,
+                limit=args.limit,
+                manual=args.manual,
+                manual_seconds=args.manual_seconds,
+            )
         elif args.command == "discover":
             payload = crawler.discover(target_names=args.target, max_pages=args.max_pages)
         elif args.command == "extract":

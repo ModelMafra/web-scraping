@@ -49,6 +49,21 @@ scrapling install
 
 Se quiseres insistir no modo browser real, a documentação do Scrapling indica tambem `playwright install chrome` quando queres usar `real_chrome=True`.
 
+## Proxies rotativos
+
+O projeto ja aceita rotação nativa de proxies do próprio Scrapling.
+
+1. Copia `config/proxies.example.txt` para `config/proxies.txt`.
+2. Mete uma proxy por linha.
+3. Define `proxies_file = "config/proxies.txt"` em `config/targets.toml`.
+
+Notas:
+
+- Se o ficheiro tiver 1 proxy valida, essa proxy e usada como proxy unica.
+- Se tiver 2 ou mais, o projeto cria um `ProxyRotator` automaticamente.
+- Podes usar linhas simples `http://user:pass@host:port` ou JSON no formato do Playwright.
+- Para a Idealista, o que normalmente faz mais diferença e proxy residencial, nao datacenter.
+
 ## Comandos
 
 Ver estado:
@@ -56,6 +71,27 @@ Ver estado:
 ```bash
 PYTHONPATH=src /home/pedro/Projetos/Web_Scraping/scrape_venv/bin/python -m idealista_ericeira_scraper status
 ```
+
+Teste rapido de acesso com a sessao atual:
+
+```bash
+PYTHONPATH=src /home/pedro/Projetos/Web_Scraping/scrape_venv/bin/python -m idealista_ericeira_scraper warmup --mode stealth
+```
+
+Teste manual com browser visivel e perfil persistente:
+
+```bash
+PYTHONPATH=src /home/pedro/Projetos/Web_Scraping/scrape_venv/bin/python -m idealista_ericeira_scraper warmup --mode stealth --headful --manual
+```
+
+Fluxo recomendado para testar a capacidade real de scraping do Scrapling:
+
+1. Correr `warmup --mode stealth --headful --manual`.
+2. O projeto tenta aceitar automaticamente o banner de cookies.
+3. Se aparecer desafio, interagir manualmente no browser.
+4. Carregar `Enter` no terminal quando a pagina estiver pronta.
+5. Correr `discover` usando o mesmo `user_data_dir`.
+6. Se o bloqueio desaparecer, avançar depois para `extract`.
 
 Descobrir anuncios:
 
@@ -89,6 +125,7 @@ PYTHONPATH=src /home/pedro/Projetos/Web_Scraping/scrape_venv/bin/python -m ideal
 - `data/details/ericeira_ads.jsonl`: detalhe normalizado de cada anuncio.
 - `state/journal.jsonl`: journal append-only com eventos de `discover` e `extract`.
 - `data/html/<listing_id>.html`: snapshot opcional da pagina para debug e reparse.
+- `config/proxies.example.txt`: exemplo do formato para single proxy ou pool rotativa.
 
 ## Estrategia de retoma
 
@@ -101,6 +138,6 @@ PYTHONPATH=src /home/pedro/Projetos/Web_Scraping/scrape_venv/bin/python -m ideal
 
 - Comecar com `--max-pages 1 --limit 5` para validar seletores e bloqueios.
 - Manter `save_html_snapshots = true` nas primeiras corridas.
-- Se a Idealista apertar o anti-bot, experimentar `dynamic` ou ligar a um browser remoto com proxy residencial.
+- Se a Idealista apertar o anti-bot, usar `proxies_file` com proxies residenciais rotativos e, se preciso, combinar com `cdp_url`.
 - Rever `robots.txt`, termos de uso e o ritmo de pedidos antes de correr em volume.
 - Considerar um passo final que reparseie os HTML guardados para enriquecer campos sem voltar a tocar no site.

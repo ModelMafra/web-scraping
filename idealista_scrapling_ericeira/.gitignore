@@ -2,12 +2,14 @@
 __pycache__/
 *.pyc
 
+config/proxies.txt
 data/discovery/*.jsonl
 data/details/*.jsonl
 data/html/*.html
 logs/*
 state/*.json
 state/*.jsonl
+state/browser_profile/
 
 !data/discovery/.gitkeep
 !data/details/.gitkeep

@@ -1,0 +1,8 @@
+# Uma proxy por linha.
+# Se tiveres mais do que uma linha valida, o projeto usa rotacao automatica com ProxyRotator do Scrapling.
+
+# URL simples
+http://user:password@proxy1.example.com:8000
+
+# Formato Playwright / Scrapling
+{"server":"http://proxy2.example.com:8000","username":"user","password":"password"}
