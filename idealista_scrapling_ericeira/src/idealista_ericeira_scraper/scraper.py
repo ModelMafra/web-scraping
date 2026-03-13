@@ -152,6 +152,125 @@ class IdealistaCrawler:
             "selected_output_fields": self.output_selection["selected_fields"],
         }
 
+    def page_extract(self, target_names: list[str] | None = None, max_pages: int = 1) -> dict:
+        saved = 0
+        indexed_now = 0
+        pages_done = 0
+        page_results = []
+
+        with ScraplingClient(self.config.fetch) as client:
+            for target in self._selected_targets(target_names):
+                current_url = target.search_url
+                seen_in_run: set[str] = set()
+                target_pages_done = 0
+
+                while current_url:
+                    if current_url in seen_in_run:
+                        break
+                    if max_pages and pages_done >= max_pages:
+                        return {
+                            "indexed_now": indexed_now,
+                            "page_results": page_results,
+                            "pages_done": pages_done,
+                            "saved": saved,
+                        }
+                    if self.config.run.max_pages_per_target and target_pages_done >= self.config.run.max_pages_per_target:
+                        break
+
+                    self._log(f"[page] A abrir {current_url}")
+                    response = client.fetch(current_url, page_action=self._build_page_action(current_url))
+                    html = response_text(response)
+                    status = response_status(response)
+                    if (status is not None and status >= 400) or is_blocked_html(html):
+                        self._store_blocked_html("page_extract", current_url, html)
+                        self.journal.record(
+                            "page_blocked",
+                            http_status=status,
+                            stage="page_extract",
+                            page_url=current_url,
+                            target_name=target.name,
+                        )
+                        raise BlockedResponseError(f"Resposta bloqueada em {current_url}")
+
+                    listing_links = extract_listing_links(response, current_url)
+                    page_number = page_number_from_url(current_url)
+
+                    if not listing_links:
+                        self._log(f"[page {page_number}] Nenhum anuncio encontrado em {current_url}")
+                        self.state.discovered_pages.add(current_url)
+                        self.journal.record(
+                            "page_empty",
+                            stage="page_extract",
+                            page_url=current_url,
+                            page_number=page_number,
+                            target_name=target.name,
+                        )
+                        break
+
+                    self._log(f"[page {page_number}] {len(listing_links)} anuncios encontrados em {target.name}")
+                    page_indexed = 0
+                    page_saved = 0
+                    items = []
+
+                    for item in listing_links:
+                        seed = self._build_seed(item, target, current_url, page_number)
+                        if self._index_seed(seed, stage="page_extract", log_prefix=f"[page {page_number}] "):
+                            indexed_now += 1
+                            page_indexed += 1
+
+                        outcome = self._extract_seed(
+                            client,
+                            seed,
+                            stage="page_extract",
+                            log_prefix=f"[page {page_number}] ",
+                        )
+                        items.append(outcome)
+                        if outcome["status"] == "saved":
+                            saved += 1
+                            page_saved += 1
+
+                    self.state.discovered_pages.add(current_url)
+                    seen_in_run.add(current_url)
+                    pages_done += 1
+                    target_pages_done += 1
+                    self.journal.record(
+                        "page_done",
+                        stage="page_extract",
+                        discovered_count=len(listing_links),
+                        indexed_now=page_indexed,
+                        page_number=page_number,
+                        page_url=current_url,
+                        saved_now=page_saved,
+                        target_name=target.name,
+                    )
+                    page_results.append(
+                        {
+                            "items": items,
+                            "indexed_now": page_indexed,
+                            "page_number": page_number,
+                            "page_url": current_url,
+                            "saved": page_saved,
+                            "target_name": target.name,
+                        }
+                    )
+                    self._log(
+                        f"[page {page_number}] Concluida: {page_saved} guardados agora, "
+                        f"{page_indexed} indexados agora, ficheiro={self.paths.details_output}"
+                    )
+
+                    next_url = extract_next_page_url(response, current_url)
+                    if not next_url:
+                        break
+                    current_url = next_url
+                    self._sleep()
+
+        return {
+            "indexed_now": indexed_now,
+            "page_results": page_results,
+            "pages_done": pages_done,
+            "saved": saved,
+        }
+
     def warmup(
         self,
         target_names: list[str] | None = None,
@@ -204,6 +323,7 @@ class IdealistaCrawler:
                     if self.config.run.max_pages_per_target and target_pages_done >= self.config.run.max_pages_per_target:
                         break
 
+                    self._log(f"[discover] A abrir {current_url}")
                     response = client.fetch(current_url, page_action=self._build_page_action(current_url))
                     html = response_text(response)
                     status = response_status(response)
@@ -232,25 +352,13 @@ class IdealistaCrawler:
                         )
                         break
 
+                    self._log(f"[discover] Pagina {page_number}: {len(listing_links)} anuncios encontrados")
                     page_new = 0
                     for item in listing_links:
-                        if item["listing_id"] in self.state.indexed_listing_ids:
-                            continue
-                        seed = {
-                            "listing_id": item["listing_id"],
-                            "listing_type": target.listing_type,
-                            "page_number": page_number,
-                            "page_url": current_url,
-                            "position": item["position"],
-                            "property_scope": target.property_scope,
-                            "target_name": target.name,
-                            "url": item["url"],
-                        }
-                        append_jsonl(self.paths.discovery_index, seed)
-                        self.state.indexed_listing_ids.add(item["listing_id"])
-                        self.journal.record("listing_indexed", stage="discover", **seed)
-                        indexed_now += 1
-                        page_new += 1
+                        seed = self._build_seed(item, target, current_url, page_number)
+                        if self._index_seed(seed, stage="discover", log_prefix=f"[discover p{page_number}] "):
+                            indexed_now += 1
+                            page_new += 1
 
                     self.state.discovered_pages.add(current_url)
                     seen_in_run.add(current_url)
@@ -278,66 +386,11 @@ class IdealistaCrawler:
         saved = 0
         with ScraplingClient(self.config.fetch) as client:
             for seed in self._iter_index_records(target_names):
-                listing_id = seed["listing_id"]
-                if listing_id in self.state.completed_listing_ids:
-                    continue
-                if self.state.failure_counts.get(listing_id, 0) >= self.config.run.max_retries:
-                    continue
-
-                try:
-                    response = client.fetch(seed["url"], page_action=self._build_page_action(seed["url"]))
-                    html = response_text(response)
-                    status = response_status(response)
-                    if (status is not None and status >= 400) or is_blocked_html(html):
-                        self._store_blocked_html("extract", seed["url"], html, listing_id=listing_id)
-                        self.journal.record(
-                            "detail_blocked",
-                            http_status=status,
-                            stage="extract",
-                            listing_id=listing_id,
-                            target_name=seed["target_name"],
-                            url=seed["url"],
-                        )
-                        raise BlockedResponseError(f"Resposta bloqueada em {seed['url']}")
-
-                    record, html = extract_listing_details(response, seed)
-                    if self.config.run.save_html_snapshots:
-                        snapshot_path = self.paths.html_snapshots / f"{listing_id}.html"
-                        write_text_file(snapshot_path, html, overwrite=self.config.run.snapshot_overwrite)
-                        record["html_snapshot_path"] = str(snapshot_path.relative_to(self.paths.root))
-
-                    append_jsonl(
-                        self.paths.details_output,
-                        filter_output_record(record, self.output_selection["selected_fields"]),
-                    )
-                    self.state.completed_listing_ids.add(listing_id)
-                    self.state.failure_counts.pop(listing_id, None)
-                    self.journal.record(
-                        "detail_done",
-                        stage="extract",
-                        listing_id=listing_id,
-                        target_name=seed["target_name"],
-                        url=seed["url"],
-                    )
+                outcome = self._extract_seed(client, seed, stage="extract", log_prefix="[extract] ")
+                if outcome["status"] == "saved":
                     saved += 1
                     if limit and saved >= limit:
                         break
-                    self._sleep()
-                except BlockedResponseError:
-                    if self.config.run.stop_on_blocked_response:
-                        raise
-                except Exception as exc:
-                    self.state.failure_counts[listing_id] += 1
-                    self.journal.record(
-                        "detail_failed",
-                        stage="extract",
-                        attempt=self.state.failure_counts[listing_id],
-                        error=str(exc),
-                        listing_id=listing_id,
-                        target_name=seed["target_name"],
-                        url=seed["url"],
-                    )
-                    self._sleep()
 
         return {"saved": saved}
 
@@ -363,6 +416,104 @@ class IdealistaCrawler:
             return self.config.targets
         selected = set(target_names)
         return [target for target in self.config.targets if target.name in selected]
+
+    def _build_seed(self, item: dict, target: TargetConfig, page_url: str, page_number: int) -> dict:
+        return {
+            "listing_id": item["listing_id"],
+            "listing_type": target.listing_type,
+            "page_number": page_number,
+            "page_url": page_url,
+            "position": item["position"],
+            "property_scope": target.property_scope,
+            "target_name": target.name,
+            "url": item["url"],
+        }
+
+    def _index_seed(self, seed: dict, *, stage: str, log_prefix: str = "") -> bool:
+        if seed["listing_id"] in self.state.indexed_listing_ids:
+            return False
+
+        append_jsonl(self.paths.discovery_index, seed)
+        self.state.indexed_listing_ids.add(seed["listing_id"])
+        self.journal.record("listing_indexed", stage=stage, **seed)
+        self._log(f"{log_prefix}[index] {seed['listing_id']} -> {seed['url']}")
+        return True
+
+    def _extract_seed(self, client: ScraplingClient, seed: dict, *, stage: str, log_prefix: str = "") -> dict:
+        listing_id = seed["listing_id"]
+        if listing_id in self.state.completed_listing_ids:
+            self._log(f"{log_prefix}[skip] {listing_id} ja estava no output")
+            return {"listing_id": listing_id, "status": "skipped_completed", "url": seed["url"]}
+
+        if self.state.failure_counts.get(listing_id, 0) >= self.config.run.max_retries:
+            self._log(f"{log_prefix}[skip] {listing_id} atingiu max_retries")
+            return {"listing_id": listing_id, "status": "skipped_max_retries", "url": seed["url"]}
+
+        self._log(f"{log_prefix}[fetch] {listing_id} -> {seed['url']}")
+        try:
+            response = client.fetch(seed["url"], page_action=self._build_page_action(seed["url"]))
+            html = response_text(response)
+            status = response_status(response)
+            if (status is not None and status >= 400) or is_blocked_html(html):
+                self._store_blocked_html(stage, seed["url"], html, listing_id=listing_id)
+                self.journal.record(
+                    "detail_blocked",
+                    http_status=status,
+                    stage=stage,
+                    listing_id=listing_id,
+                    target_name=seed["target_name"],
+                    url=seed["url"],
+                )
+                self._log(f"{log_prefix}[blocked] {listing_id} -> http_status={status}")
+                raise BlockedResponseError(f"Resposta bloqueada em {seed['url']}")
+
+            record, html = extract_listing_details(response, seed)
+            if self.config.run.save_html_snapshots:
+                snapshot_path = self.paths.html_snapshots / f"{listing_id}.html"
+                write_text_file(snapshot_path, html, overwrite=self.config.run.snapshot_overwrite)
+                record["html_snapshot_path"] = str(snapshot_path.relative_to(self.paths.root))
+
+            output_record = filter_output_record(record, self.output_selection["selected_fields"])
+            append_jsonl(self.paths.details_output, output_record)
+            self.state.completed_listing_ids.add(listing_id)
+            self.state.failure_counts.pop(listing_id, None)
+            self.journal.record(
+                "detail_done",
+                stage=stage,
+                listing_id=listing_id,
+                target_name=seed["target_name"],
+                url=seed["url"],
+            )
+            self._log(
+                f"{log_prefix}[save] {listing_id} | {output_record.get('title') or '-'} | "
+                f"{output_record.get('price_text') or '-'} | {self.paths.details_output}"
+            )
+            self._sleep()
+            return {
+                "listing_id": listing_id,
+                "price_text": output_record.get("price_text"),
+                "status": "saved",
+                "title": output_record.get("title"),
+                "url": seed["url"],
+            }
+        except BlockedResponseError:
+            if self.config.run.stop_on_blocked_response:
+                raise
+            return {"listing_id": listing_id, "status": "blocked", "url": seed["url"]}
+        except Exception as exc:
+            self.state.failure_counts[listing_id] += 1
+            self.journal.record(
+                "detail_failed",
+                stage=stage,
+                attempt=self.state.failure_counts[listing_id],
+                error=str(exc),
+                listing_id=listing_id,
+                target_name=seed["target_name"],
+                url=seed["url"],
+            )
+            self._log(f"{log_prefix}[error] {listing_id} -> {exc}")
+            self._sleep()
+            return {"error": str(exc), "listing_id": listing_id, "status": "failed", "url": seed["url"]}
 
     def _build_page_action(
         self,
@@ -403,6 +554,9 @@ class IdealistaCrawler:
             return None
 
         return page_action
+
+    def _log(self, message: str) -> None:
+        print(message, flush=True)
 
     def _sleep(self) -> None:
         if self.config.run.request_delay_seconds > 0:

@@ -310,12 +310,13 @@ UI_HTML = """<!doctype html>
         <div id="sourceFields" class="source-list"></div>
       </div>
       <div>
-        <h2>Comando sugerido</h2>
-        <p class="muted">A UI guarda a selecao em ficheiro. O scraping continua a ser corrido pelo CLI.</p>
+        <h2>Modo simples</h2>
+        <p class="muted">O mais direto e sacar uma pagina inteira e gravar cada anuncio logo no ficheiro final.</p>
         <div class="controls">
           <div class="control">
             <label for="actionSelect">Acao</label>
             <select id="actionSelect">
+              <option value="page">page</option>
               <option value="crawl">crawl</option>
               <option value="discover">discover</option>
               <option value="extract">extract</option>
@@ -342,8 +343,8 @@ UI_HTML = """<!doctype html>
         <div id="targetList" class="target-list"></div>
         <div class="stack" style="margin-top: 14px;">
           <button id="runSelectedBtn">Correr agora</button>
-          <button id="extractNowBtn" class="secondary">Extrair 10</button>
-          <button id="discoverNowBtn" class="secondary">Descobrir 1 pagina</button>
+          <button id="pageNowBtn" class="secondary">Sacar 1 pagina</button>
+          <button id="extractNowBtn" class="secondary">Continuar pendentes</button>
         </div>
         <pre id="commandPreview"></pre>
         <p class="footer-note">A selecao de campos vai para <span id="selectionPath"></span>.</p>
@@ -525,7 +526,7 @@ UI_HTML = """<!doctype html>
       if (action !== "extract" && maxPages) {
         parts.push("--max-pages", maxPages);
       }
-      if (action !== "discover" && limit) {
+      if (action !== "discover" && action !== "page" && limit) {
         parts.push("--limit", limit);
       }
       return parts.join(" ");
@@ -588,17 +589,17 @@ UI_HTML = """<!doctype html>
         });
         document.getElementById("saveBtn").addEventListener("click", saveSelection);
         document.getElementById("runSelectedBtn").addEventListener("click", () => runAction());
+        document.getElementById("pageNowBtn").addEventListener("click", () => {
+          document.getElementById("actionSelect").value = "page";
+          document.getElementById("pagesInput").value = "1";
+          refreshPreviews();
+          runAction("page");
+        });
         document.getElementById("extractNowBtn").addEventListener("click", () => {
           document.getElementById("actionSelect").value = "extract";
           document.getElementById("limitInput").value = "10";
           refreshPreviews();
           runAction("extract");
-        });
-        document.getElementById("discoverNowBtn").addEventListener("click", () => {
-          document.getElementById("actionSelect").value = "discover";
-          document.getElementById("pagesInput").value = "1";
-          refreshPreviews();
-          runAction("discover");
         });
         for (const element of document.querySelectorAll("#actionSelect, #pagesInput, #limitInput, #modeSelect")) {
           element.addEventListener("input", refreshPreviews);
@@ -707,6 +708,8 @@ def _run_action(payload: dict[str, Any], config_path: str | None = None) -> dict
     crawler = IdealistaCrawler(config_path=config_path, mode_override=mode_override)
     if action == "discover":
         result = crawler.discover(target_names=target_names, max_pages=_as_int(max_pages))
+    elif action == "page":
+        result = crawler.page_extract(target_names=target_names, max_pages=_as_int(max_pages) or 1)
     elif action == "crawl":
         result = crawler.crawl(
             target_names=target_names,

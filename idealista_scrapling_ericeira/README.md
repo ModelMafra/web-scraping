@@ -85,6 +85,17 @@ Teste manual com browser visivel e perfil persistente:
 PYTHONPATH=src /home/pedro/Projetos/Web_Scraping/scrape_venv/bin/python -m idealista_ericeira_scraper warmup --mode stealth --headful --manual
 ```
 
+Fluxo mais simples:
+
+1. Correr uma pagina inteira e gravar anuncio a anuncio logo no ficheiro final:
+
+```bash
+PYTHONPATH=src /home/pedro/Projetos/Web_Scraping/scrape_venv/bin/python -m idealista_ericeira_scraper page --max-pages 1
+```
+
+2. Ver os prints no terminal para acompanhar o que esta a ser aberto, saltado e guardado.
+3. Se quiseres continuar, aumentar `--max-pages` ou voltar a correr o mesmo comando.
+
 Fluxo recomendado para testar a capacidade real de scraping do Scrapling:
 
 1. Correr `warmup --mode stealth --headful --manual`.
@@ -106,6 +117,12 @@ Descobrir anuncios:
 
 ```bash
 PYTHONPATH=src /home/pedro/Projetos/Web_Scraping/scrape_venv/bin/python -m idealista_ericeira_scraper discover --max-pages 2
+```
+
+Sacar por pagina e gravar logo no output:
+
+```bash
+PYTHONPATH=src /home/pedro/Projetos/Web_Scraping/scrape_venv/bin/python -m idealista_ericeira_scraper page --max-pages 1
 ```
 
 Extrair detalhe:
