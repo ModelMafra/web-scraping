@@ -71,13 +71,13 @@ UI_HTML = """<!doctype html>
         linear-gradient(140deg, var(--bg-a) 0%, var(--bg-b) 55%, #f4efe2 100%);
       color: var(--ink);
       font-family: var(--body);
-      padding: 8px;
+      padding: 12px;
       overflow: auto;
     }
 
     .stage {
-      width: min(1880px, calc(100vw - 16px));
-      min-height: max(1180px, calc(100vh - 16px));
+      width: min(1760px, calc(100vw - 24px));
+      min-height: calc(100vh - 24px);
       height: auto;
       aspect-ratio: auto;
       margin: 0 auto;
@@ -89,7 +89,7 @@ UI_HTML = """<!doctype html>
       padding: 18px;
       display: grid;
       grid-template-columns: 360px minmax(0, 1fr);
-      grid-template-rows: auto minmax(0, 1.34fr) minmax(320px, 1fr);
+      grid-template-rows: auto auto auto;
       grid-template-areas:
         "hero hero"
         "sidebar activity"
@@ -110,10 +110,10 @@ UI_HTML = """<!doctype html>
     .hero {
       grid-area: hero;
       display: grid;
-      grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
-      gap: 18px;
+      grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+      gap: 16px;
       align-items: center;
-      padding: 22px 26px;
+      padding: 18px 22px;
       background:
         linear-gradient(135deg, rgba(255,255,255,0.88), rgba(213,239,240,0.82)),
         linear-gradient(180deg, rgba(255,255,255,0.75), rgba(255,255,255,0.35));
@@ -122,8 +122,8 @@ UI_HTML = """<!doctype html>
     .hero-copy {
       display: grid;
       align-content: center;
-      gap: 12px;
-      max-width: 820px;
+      gap: 8px;
+      max-width: 700px;
       min-width: 0;
     }
 
@@ -143,19 +143,19 @@ UI_HTML = """<!doctype html>
     }
 
     h1 {
-      font-size: clamp(22px, 3vw, 40px);
-      line-height: 0.94;
-      max-width: 12ch;
-      margin-bottom: 6px;
+      font-size: clamp(24px, 2.5vw, 34px);
+      line-height: 0.95;
+      max-width: 10ch;
+      margin-bottom: 4px;
     }
 
     h2 {
-      font-size: 32px;
+      font-size: 26px;
       line-height: 1.02;
     }
 
     h3 {
-      font-size: 20px;
+      font-size: 18px;
       line-height: 1.05;
     }
 
@@ -171,13 +171,13 @@ UI_HTML = """<!doctype html>
     .hero-stats {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 12px;
+      gap: 10px;
       align-self: stretch;
     }
 
     .stat {
       border-radius: 20px;
-      padding: 14px 16px;
+      padding: 12px 14px;
       background: rgba(255,255,255,0.8);
       border: 1px solid var(--line);
     }
@@ -191,10 +191,10 @@ UI_HTML = """<!doctype html>
     }
 
     .stat-value {
-      font-size: 30px;
+      font-size: 24px;
       font-weight: 800;
       letter-spacing: -0.03em;
-      margin-top: 6px;
+      margin-top: 4px;
     }
 
     .sidebar {
@@ -347,9 +347,9 @@ UI_HTML = """<!doctype html>
       border-radius: 20px;
       border: 1px solid var(--line);
       background: rgba(15, 107, 114, 0.08);
-      padding: 12px 14px;
+      padding: 10px 12px;
       font-size: 12px;
-      line-height: 1.55;
+      line-height: 1.45;
       color: var(--accent-deep);
     }
 
@@ -400,6 +400,7 @@ UI_HTML = """<!doctype html>
       gap: 14px;
       min-height: 0;
       overflow: hidden;
+      align-self: stretch;
     }
 
     .section-head {
@@ -418,15 +419,17 @@ UI_HTML = """<!doctype html>
       border-radius: 22px;
       background: linear-gradient(180deg, #0d2430, #102a35);
       color: #ecf4f5;
-      padding: 18px;
+      padding: 16px 18px;
       font-family: var(--mono);
-      font-size: 15px;
-      line-height: 1.7;
+      font-size: 14px;
+      line-height: 1.65;
       overflow: auto;
+      scrollbar-gutter: stable;
       white-space: pre-wrap;
       word-break: break-word;
       min-height: 0;
-      min-block-size: 180px;
+      block-size: 320px;
+      max-block-size: 320px;
     }
 
     .right-grid {
@@ -452,8 +455,41 @@ UI_HTML = """<!doctype html>
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
+    .latest-media,
     .latest-main {
       grid-column: 1 / -1;
+    }
+
+    .latest-media {
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(13, 36, 48, 0.94), rgba(16, 42, 53, 0.98));
+      block-size: 150px;
+      min-block-size: 150px;
+    }
+
+    .latest-media img {
+      inline-size: 100%;
+      block-size: 100%;
+      display: block;
+      object-fit: contain;
+      object-position: center;
+      background: #102a35;
+    }
+
+    .latest-media-empty {
+      display: grid;
+      place-items: center;
+      block-size: 100%;
+      padding: 18px;
+      color: rgba(236, 244, 245, 0.88);
+      text-align: center;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .latest-main {
       padding: 14px;
       border-radius: var(--radius-lg);
       background: rgba(255,255,255,0.92);
@@ -587,6 +623,11 @@ UI_HTML = """<!doctype html>
       .sidebar {
         overflow: visible;
       }
+
+      .logbox {
+        block-size: 240px;
+        max-block-size: 240px;
+      }
     }
   </style>
 </head>
@@ -595,8 +636,8 @@ UI_HTML = """<!doctype html>
     <header class="hero panel">
       <div class="hero-copy">
         <p class="eyebrow">Idealista / Ericeira</p>
-        <h1>Scraping simples, bonito e com logs visiveis</h1>
-        <p class="muted">As acoes rapidas abaixo sao pensadas para o uso normal. O mais direto e <strong>sacar 1 pagina</strong>: abre a pagina de resultados, visita os anuncios dessa pagina e grava cada anuncio no ficheiro final assim que fica pronto.</p>
+        <h1>Painel simples de scraping</h1>
+        <p class="muted">Escolhe o alvo, clica num botao e acompanha tudo na caixa de atividade. <strong>Sacar tudo</strong> ja corre todas as paginas sem pedires numero.</p>
       </div>
       <div id="heroStats" class="hero-stats"></div>
     </header>
@@ -645,7 +686,7 @@ UI_HTML = """<!doctype html>
           </article>
         </div>
         <div class="sidebar-note">
-          Para guardar <strong>todos os dados</strong>, o scraper entra no detalhe de cada anuncio. A pagina de resultados serve para descobrir os links; os campos finais saem da pagina individual de cada imovel.
+          <strong>Nota:</strong> para guardar todos os campos, o scraper abre cada anuncio individualmente. Os logs uteis aparecem na caixa da direita.
         </div>
       </section>
 
@@ -658,23 +699,13 @@ UI_HTML = """<!doctype html>
           <div class="advanced-grid">
             <div class="section-copy">
               <h2>Campos do JSONL</h2>
-              <p class="muted">Se quiseres, ajusta aqui os campos guardados no ficheiro final. Os campos fixos ficam sempre ativos.</p>
+              <p class="muted">Opcional. Ajusta aqui os campos guardados no ficheiro final.</p>
             </div>
             <div id="fieldGrid" class="field-grid"></div>
             <div class="toolbar">
               <button id="saveFieldsBtn" class="primary">Guardar campos</button>
               <button id="recommendedBtn" class="ghost">Recomendado</button>
               <button id="minimalBtn" class="ghost">Minimo</button>
-            </div>
-            <div class="section-copy">
-              <h2>Se preferires terminal</h2>
-              <p class="muted">As mesmas acoes tambem podem ser corridas por comando.</p>
-            </div>
-            <div id="commandBox" class="command-box"></div>
-            <div class="helper-stack">
-              <p class="muted"><strong>Sacar 1 pagina</strong>: corre o fluxo mais simples, pagina a pagina, e grava anuncio a anuncio.</p>
-              <p class="muted"><strong>Sacar tudo</strong>: continua automaticamente ate nao existir pagina seguinte.</p>
-              <p class="muted"><strong>Continuar pendentes</strong>: usa o indice atual para retomar sem repetir o que ja foi guardado.</p>
             </div>
           </div>
         </details>
@@ -806,7 +837,26 @@ UI_HTML = """<!doctype html>
         return;
       }
 
+      const imageUrl = record.preview_image_url || "";
+      const imageFrame = imageUrl
+        ? `
+          <article class="latest-media">
+            <img
+              loading="lazy"
+              referrerpolicy="no-referrer"
+              src="${escapeHtml(imageUrl)}"
+              alt="Imagem do ultimo anuncio guardado"
+            >
+          </article>
+        `
+        : `
+          <article class="latest-media">
+            <div class="latest-media-empty">Este registo nao tem imagem guardada no JSONL.</div>
+          </article>
+        `;
+
       root.innerHTML = `
+        ${imageFrame}
         <article class="latest-main">
           <div class="mini-label">Titulo</div>
           <div class="latest-title">${escapeHtml(record.title || "Sem titulo")}</div>
@@ -878,7 +928,10 @@ UI_HTML = """<!doctype html>
         `Sacar tudo\\nidealista-ericeira page ${targetArgs}${modeArg} --all-pages`,
         `Continuar pendentes\\nidealista-ericeira extract ${targetArgs}${modeArg}`,
       ];
-      document.getElementById("commandBox").textContent = commands.join("\\n\\n");
+      const commandBox = document.getElementById("commandBox");
+      if (commandBox) {
+        commandBox.textContent = commands.join("\\n\\n");
+      }
     }
 
     function statusChipClass(job) {
@@ -910,20 +963,17 @@ UI_HTML = """<!doctype html>
       }
 
       const lines = [];
-      lines.push(`[ui] ${job.label}`);
-      lines.push(`[ui] Estado: ${job.status}`);
       if (job.logs && job.logs.length) {
-        lines.push("");
         lines.push(...job.logs);
       }
       if (job.result) {
         lines.push("");
-        lines.push("[ui] Resumo final:");
+        lines.push("Resumo final:");
         lines.push(...jobSummaryLines(job.result));
       }
       if (job.error) {
         lines.push("");
-        lines.push(`[ui] Erro: ${job.error}`);
+        lines.push(`Erro: ${job.error}`);
       }
       logBox.textContent = lines.join("\\n");
       logBox.scrollTop = logBox.scrollHeight;
@@ -1095,12 +1145,14 @@ def _short_text(value: str | None, limit: int = 180) -> str | None:
 def _latest_record_payload(record: dict[str, Any] | None) -> dict[str, Any] | None:
     if not record:
         return None
+    images = record.get("images") or []
     return {
         "address": record.get("address"),
         "description": _short_text(record.get("description")),
         "fetched_at": record.get("fetched_at"),
-        "images_count": len(record.get("images") or []),
+        "images_count": len(images),
         "listing_id": record.get("listing_id"),
+        "preview_image_url": images[0] if images else None,
         "price_text": record.get("price_text"),
         "title": record.get("title"),
         "url": record.get("url"),
