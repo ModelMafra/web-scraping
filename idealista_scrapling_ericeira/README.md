@@ -11,7 +11,7 @@ Projeto base para testar a biblioteca `scrapling` na recolha de anuncios da Idea
 - A Idealista devolveu uma pagina de proteção anti-bot num pedido HTTP simples, por isso o modo default ficou em `stealth`.
 - No teste real de `2026-03-13`, ate `StealthySession` com browser instalado continuou a receber `403` e HTML de `captcha-delivery`, portanto o proximo passo mais provavel e usar proxy residencial ou browser remoto.
 - O banner de cookies atual e gerido por Didomi, e o projeto tenta aceitá-lo automaticamente em modo browser.
-- Existe agora uma UI local simples para escolher os campos que queres guardar no `jsonl`.
+- Existe agora uma UI local 16:9, mais simples, com logs visiveis na propria pagina e botoes rapidos para `Sacar 1 pagina`, `Sacar tudo` e `Continuar pendentes`.
 
 ## Estrutura
 
@@ -95,6 +95,11 @@ PYTHONPATH=src /home/pedro/Projetos/Web_Scraping/scrape_venv/bin/python -m ideal
 
 2. Ver os prints no terminal para acompanhar o que esta a ser aberto, saltado e guardado.
 3. Se quiseres continuar, aumentar `--max-pages` ou voltar a correr o mesmo comando.
+4. Se quiseres varrer tudo de seguida, usa:
+
+```bash
+PYTHONPATH=src /home/pedro/Projetos/Web_Scraping/scrape_venv/bin/python -m idealista_ericeira_scraper page --all-pages
+```
 
 Fluxo recomendado para testar a capacidade real de scraping do Scrapling:
 
@@ -111,7 +116,11 @@ Abrir a UI local para escolher os campos do detalhe e correr o scraper:
 PYTHONPATH=src /home/pedro/Projetos/Web_Scraping/scrape_venv/bin/python -m idealista_ericeira_scraper ui
 ```
 
-Isto abre um frontend em `http://127.0.0.1:8765/`, grava a selecao em `config/extract_fields.json` e deixa correr `discover`/`extract` diretamente pelos botoes da UI.
+Isto abre um frontend em `http://127.0.0.1:8765/`, grava a selecao em `config/extract_fields.json`, mostra os logs da execucao na propria pagina e deixa correr:
+
+- `Sacar 1 pagina`
+- `Sacar tudo`
+- `Continuar pendentes`
 
 Descobrir anuncios:
 
@@ -123,6 +132,12 @@ Sacar por pagina e gravar logo no output:
 
 ```bash
 PYTHONPATH=src /home/pedro/Projetos/Web_Scraping/scrape_venv/bin/python -m idealista_ericeira_scraper page --max-pages 1
+```
+
+Sacar todas as paginas:
+
+```bash
+PYTHONPATH=src /home/pedro/Projetos/Web_Scraping/scrape_venv/bin/python -m idealista_ericeira_scraper page --all-pages
 ```
 
 Extrair detalhe:

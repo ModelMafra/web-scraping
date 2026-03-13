@@ -49,6 +49,11 @@ def build_parser() -> argparse.ArgumentParser:
     )
     page_parser.add_argument("--target", action="append", help="Filtra por target especifico.")
     page_parser.add_argument("--max-pages", type=int, default=1, help="Numero de paginas a sacar nesta corrida.")
+    page_parser.add_argument(
+        "--all-pages",
+        action="store_true",
+        help="Ignora --max-pages e vai ate nao haver mais paginas.",
+    )
 
     extract_parser = subparsers.add_parser("extract", help="Extrai detalhe dos anuncios ja descobertos.", parents=[common])
     extract_parser.add_argument("--target", action="append", help="Filtra por target especifico.")
@@ -102,7 +107,10 @@ def main(argv: list[str] | None = None) -> int:
                 manual_seconds=args.manual_seconds,
             )
         elif args.command == "page":
-            payload = crawler.page_extract(target_names=args.target, max_pages=args.max_pages)
+            payload = crawler.page_extract(
+                target_names=args.target,
+                max_pages=None if args.all_pages else args.max_pages,
+            )
         elif args.command == "discover":
             payload = crawler.discover(target_names=args.target, max_pages=args.max_pages)
         elif args.command == "extract":
