@@ -10,6 +10,7 @@ Projeto base para testar a biblioteca `scrapling` na recolha de anuncios da Idea
 - As paginas HTML podem ser guardadas em `data/html/` para reprocessar depois sem voltar ao site.
 - A Idealista devolveu uma pagina de proteção anti-bot num pedido HTTP simples, por isso o modo default ficou em `stealth`.
 - No teste real de `2026-03-13`, ate `StealthySession` com browser instalado continuou a receber `403` e HTML de `captcha-delivery`, portanto o proximo passo mais provavel e usar proxy residencial ou browser remoto.
+- O banner de cookies atual e gerido por Didomi, e o projeto tenta aceitá-lo automaticamente em modo browser.
 
 ## Estrutura
 
@@ -27,10 +28,7 @@ idealista_scrapling_ericeira/
 ├── src/
 │   └── idealista_ericeira_scraper/
 │       ├── cli.py
-│       ├── config.py
-│       ├── fetching.py
-│       ├── io_utils.py
-│       ├── journal.py
+│       ├── core.py
 │       ├── parsers.py
 │       └── scraper.py
 ├── state/

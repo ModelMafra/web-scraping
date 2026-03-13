@@ -4,8 +4,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 import unittest
 
-from idealista_ericeira_scraper.io_utils import append_jsonl
-from idealista_ericeira_scraper.journal import build_resume_state
+from idealista_ericeira_scraper.core import append_jsonl, build_resume_state
 
 
 class JournalTests(unittest.TestCase):

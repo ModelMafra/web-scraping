@@ -7,10 +7,18 @@ import re
 from time import sleep as time_sleep
 from time import sleep
 
-from idealista_ericeira_scraper.config import AppConfig, ProjectPaths, TargetConfig, load_config
-from idealista_ericeira_scraper.fetching import ScraplingClient
-from idealista_ericeira_scraper.io_utils import append_jsonl, read_jsonl, write_text_file
-from idealista_ericeira_scraper.journal import Journal, build_resume_state
+from idealista_ericeira_scraper.core import (
+    AppConfig,
+    Journal,
+    ProjectPaths,
+    ScraplingClient,
+    TargetConfig,
+    append_jsonl,
+    build_resume_state,
+    load_config,
+    read_jsonl,
+    write_text_file,
+)
 from idealista_ericeira_scraper.parsers import (
     extract_listing_details,
     extract_listing_links,
@@ -34,6 +42,10 @@ COOKIE_BUTTON_PATTERNS = (
 )
 
 COOKIE_SELECTOR_CANDIDATES = (
+    "#didomi-notice-agree-button",
+    "[data-testid='didomi-notice-agree-button']",
+    "[id*='didomi'] button",
+    "[class*='didomi'] button",
     "button[id*='accept']",
     "button[class*='accept']",
     "[id*='cookie'] button",
@@ -45,6 +57,31 @@ COOKIE_SELECTOR_CANDIDATES = (
 
 def dismiss_cookie_banner(page) -> bool:
     roots = [page, *list(getattr(page, "frames", []))]
+
+    try:
+        page.evaluate(
+            """
+            () => {
+              const selectors = [
+                '#didomi-notice-agree-button',
+                '[data-testid="didomi-notice-agree-button"]',
+                '[id*="didomi"] button',
+                '[class*="didomi"] button'
+              ];
+              for (const selector of selectors) {
+                const element = document.querySelector(selector);
+                if (element) {
+                  element.click();
+                  return true;
+                }
+              }
+              return false;
+            }
+            """
+        )
+        page.wait_for_timeout(500)
+    except Exception:
+        pass
 
     for root in roots:
         for pattern in COOKIE_BUTTON_PATTERNS:
@@ -155,7 +192,7 @@ class IdealistaCrawler:
                 seen_in_run: set[str] = set()
                 target_pages_done = 0
                 while current_url:
-                    if current_url in self.state.discovered_pages or current_url in seen_in_run:
+                    if current_url in seen_in_run:
                         break
                     if max_pages and pages_done >= max_pages:
                         return {"pages_done": pages_done, "indexed_now": indexed_now}

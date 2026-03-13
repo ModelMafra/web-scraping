@@ -5,11 +5,17 @@ from urllib.parse import urljoin, urlsplit, urlunsplit
 import json
 import re
 
-from idealista_ericeira_scraper.io_utils import text_sha256, utc_now_iso
+from idealista_ericeira_scraper.core import text_sha256, utc_now_iso
 
 IDEALISTA_BASE = "https://www.idealista.pt"
 LISTING_ID_RE = re.compile(r"/imovel/(?P<listing_id>\d+)(?:/|$)")
 PAGE_NUMBER_RE = re.compile(r"/pagina-(?P<page>\d+)(?:[/.]|$)")
+JS_PRICE_RE = re.compile(r"\bprice:\s*(?P<price>\d+(?:\.\d+)?)")
+IDEALISTA_IMAGE_RE = re.compile(r"https://img\d+\.idealista\.pt/[^\"'\s>]+?\.(?:jpg|jpeg|png|webp)")
+PRICE_BLOCK_RE = re.compile(
+    r'<span class="info-data-price">(?P<price_html>.*?)</span>|<strong class="price">(?P<strong_price>.*?)</strong>',
+    re.S,
+)
 BLOCKED_PATTERNS = (
     "please enable js",
     "disable any ad blocker",
@@ -21,6 +27,10 @@ BLOCKED_PATTERNS = (
 
 def clean_text(value: str) -> str:
     return re.sub(r"\s+", " ", value).strip()
+
+
+def strip_tags(value: str) -> str:
+    return clean_text(re.sub(r"<[^>]+>", " ", value))
 
 
 def css_getall(response, selector: str) -> list[str]:
@@ -269,6 +279,31 @@ def parse_price_amount(price_text: str | None) -> int | None:
     return int(digits) if digits else None
 
 
+def parse_price_amount_from_html(html: str) -> int | None:
+    match = JS_PRICE_RE.search(html)
+    if not match:
+        return None
+    try:
+        return int(float(match.group("price")))
+    except ValueError:
+        return None
+
+
+def extract_images_from_html(html: str) -> list[str]:
+    return dedupe_preserving_order(IDEALISTA_IMAGE_RE.findall(html))
+
+
+def extract_price_text_from_html(html: str) -> str | None:
+    for match in PRICE_BLOCK_RE.finditer(html):
+        raw = match.group("price_html") or match.group("strong_price")
+        if not raw:
+            continue
+        cleaned = strip_tags(raw).replace("&euro;", "€")
+        if "€" in cleaned and any(char.isdigit() for char in cleaned):
+            return cleaned
+    return None
+
+
 def extract_listing_details(response, seed: dict) -> tuple[dict, str]:
     html = response_text(response)
     json_ld = parse_json_ld(response)
@@ -280,6 +315,7 @@ def extract_listing_details(response, seed: dict) -> tuple[dict, str]:
 
     title = first_non_empty(
         [
+            css_get(response, ".main-info__title-main::text"),
             css_get(response, "h1::text"),
             meta.get("og:title"),
             next((value for value in find_key_values(json_ld, "name") if isinstance(value, str)), None),
@@ -302,9 +338,19 @@ def extract_listing_details(response, seed: dict) -> tuple[dict, str]:
                 address_value.get("addressRegion"),
             ]
         )
+    address = first_non_empty(
+        [
+            css_get(response, ".main-info__title-minor::text"),
+            address,
+        ]
+    )
 
     price_text = first_non_empty(
         [
+            extract_price_text_from_html(html),
+            css_get(response, ".info-data-price::text"),
+            css_get(response, ".price-container .price::text"),
+            css_get(response, ".price::text"),
             css_get(response, '[class*="price"]::text'),
             next((value for value in find_key_values(json_ld, "price") if isinstance(value, str)), None),
         ]
@@ -313,12 +359,13 @@ def extract_listing_details(response, seed: dict) -> tuple[dict, str]:
     images = dedupe_preserving_order(
         [
             *css_getall(response, 'meta[property="og:image"]::attr(content)'),
-            *css_getall(response, "img::attr(src)"),
+            *extract_images_from_html(html),
             *extract_images_from_json_ld(json_ld),
         ]
     )
 
     final_url = strip_query_and_fragment(getattr(response, "url", seed["url"]))
+    price_amount = parse_price_amount(price_text) or parse_price_amount_from_html(html)
     record = {
         **seed,
         "challenge_detected": is_blocked_html(html),
@@ -332,7 +379,7 @@ def extract_listing_details(response, seed: dict) -> tuple[dict, str]:
         "json_ld": json_ld,
         "meta": meta,
         "page_text_excerpt": clean_text(visible_text)[:2000],
-        "price_amount_eur": parse_price_amount(price_text),
+        "price_amount_eur": price_amount,
         "price_text": price_text,
         "title": title,
         "address": address,

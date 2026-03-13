@@ -4,7 +4,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 import unittest
 
-from idealista_ericeira_scraper.fetching import load_proxy_entries
+from idealista_ericeira_scraper.core import load_proxy_entries
 
 
 class FetchingTests(unittest.TestCase):
