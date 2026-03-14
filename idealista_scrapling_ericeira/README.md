@@ -41,6 +41,15 @@ A app abre em `http://127.0.0.1:8765/`:
 - `/guia` versão do README dentro da app
 - `/analise` análise dos dados já guardados
 
+Dashboard analítico separado:
+
+```bash
+cd /home/pedro/Projetos/Web_Scraping/idealista_scrapling_ericeira
+/home/pedro/Projetos/Web_Scraping/scrape_venv/bin/idealista-ericeira dashboard
+```
+
+Abre em `http://127.0.0.1:8766/` e serve para explorar os anúncios já guardados com filtros, gráficos comparativos e contexto estatístico.
+
 Comandos principais:
 
 ```bash

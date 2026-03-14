@@ -73,6 +73,19 @@ def build_parser() -> argparse.ArgumentParser:
         help="Nao tenta abrir automaticamente o browser.",
     )
 
+    dashboard_parser = subparsers.add_parser(
+        "dashboard",
+        help="Abre um dashboard analitico em Dash + Plotly.",
+        parents=[common],
+    )
+    dashboard_parser.add_argument("--host", default="127.0.0.1", help="Host onde o dashboard vai ouvir.")
+    dashboard_parser.add_argument("--port", type=int, default=8766, help="Porta HTTP do dashboard.")
+    dashboard_parser.add_argument(
+        "--no-browser",
+        action="store_true",
+        help="Nao tenta abrir automaticamente o browser.",
+    )
+
     return parser
 
 
@@ -83,6 +96,16 @@ def main(argv: list[str] | None = None) -> int:
         from idealista_ericeira_scraper.ui import serve_ui
 
         serve_ui(
+            host=args.host,
+            port=args.port,
+            config_path=args.config,
+            open_browser=not args.no_browser,
+        )
+        return 0
+    if args.command == "dashboard":
+        from idealista_ericeira_scraper.dashboard import serve_dashboard
+
+        serve_dashboard(
             host=args.host,
             port=args.port,
             config_path=args.config,

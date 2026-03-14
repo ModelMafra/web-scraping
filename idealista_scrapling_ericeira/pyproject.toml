@@ -9,6 +9,10 @@ description = "Scraper de anuncios da Idealista para Ericeira com Scrapling e re
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
+  "dash>=2.18,<3",
+  "numpy>=1.26,<3",
+  "pandas>=2.2,<3",
+  "plotly>=5.24,<6",
   "scrapling[fetchers]>=0.4.2,<0.5",
 ]
 
