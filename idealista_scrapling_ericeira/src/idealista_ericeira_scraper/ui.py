@@ -38,6 +38,38 @@ TARGET_HELP = {
     "ericeira_rent_homes": "Pesquisa anuncios de arrendamento em Ericeira.",
 }
 
+ANALYSIS_METRIC_SPECS: tuple[dict[str, str], ...] = (
+    {"label": "Total anuncios", "key": "total_listings", "format": "number"},
+    {"label": "Com preco", "key": "priced_listings", "format": "number"},
+    {"label": "Preco medio", "key": "average_price_eur", "format": "euro"},
+    {"label": "Preco mediano", "key": "median_price_eur", "format": "euro"},
+    {"label": "Preco medio / m²", "key": "average_price_per_m2_eur", "format": "euro"},
+    {"label": "Zonas unicas", "key": "unique_locations", "format": "number"},
+)
+
+ANALYSIS_CHART_SPECS: tuple[dict[str, str], ...] = (
+    {
+        "chart_id": "locationsChart",
+        "data_key": "top_locations",
+        "description": "Onde existem mais anuncios no dataset atual.",
+        "title": "Top localizacoes",
+    },
+    {
+        "chart_id": "bedroomsChart",
+        "data_key": "bedrooms",
+        "description": "Distribuicao por numero de quartos.",
+        "title": "Tipologias",
+    },
+    {
+        "chart_id": "typesChart",
+        "data_key": "property_types",
+        "description": "Agrupamento rapido pelo tipo principal do anuncio.",
+        "title": "Tipos de imovel",
+    },
+)
+
+ANALYSIS_PREVIEW_IMAGE_LIMIT = 40
+
 UI_HTML = """<!doctype html>
 <html lang="pt">
 <head>
@@ -1693,36 +1725,12 @@ ANALYSIS_HTML = """<!doctype html>
         <a class="nav-link" href="/guia">Abrir guia</a>
       </div>
       <h1>Analise dos dados</h1>
-      <p class="muted">Aqui tens uma vista de negocio dos anuncios guardados: metricas, distribuicoes e um explorador com `iframe` para clicar em cada anuncio e ver imagens, metadados e o link original.</p>
+      <p class="muted">Métricas principais, 3 gráficos essenciais e um explorador com preview interno por anúncio.</p>
     </section>
 
     <section id="metricsGrid" class="metrics-grid"></section>
 
-    <section class="chart-grid">
-      <article class="panel">
-        <div class="section-copy">
-          <h2>Top localizacoes</h2>
-          <p class="muted">Onde existem mais anuncios no dataset atual.</p>
-        </div>
-        <div id="locationsChart" class="bar-list"></div>
-      </article>
-
-      <article class="panel">
-        <div class="section-copy">
-          <h2>Tipologias</h2>
-          <p class="muted">Distribuicao por numero de quartos.</p>
-        </div>
-        <div id="bedroomsChart" class="bar-list"></div>
-      </article>
-
-      <article class="panel">
-        <div class="section-copy">
-          <h2>Tipos de imovel</h2>
-          <p class="muted">Agrupamento rapido pelo tipo principal do anuncio.</p>
-        </div>
-        <div id="typesChart" class="bar-list"></div>
-      </article>
-    </section>
+    <section id="chartGrid" class="chart-grid"></section>
 
     <section class="explorer-grid">
       <article class="panel list-panel">
@@ -1783,24 +1791,41 @@ ANALYSIS_HTML = """<!doctype html>
 
     function renderMetrics() {
       const summary = analysisData.summary;
-      const items = [
-        ["Total anuncios", formatNumber(summary.total_listings)],
-        ["Com preco", formatNumber(summary.priced_listings)],
-        ["Preco medio", formatEuro(summary.average_price_eur)],
-        ["Preco mediano", formatEuro(summary.median_price_eur)],
-        ["Preco minimo", formatEuro(summary.min_price_eur)],
-        ["Preco maximo", formatEuro(summary.max_price_eur)],
-        ["Preco medio / m²", formatEuro(summary.average_price_per_m2_eur)],
-        ["Area media", summary.average_area_m2 ? `${formatNumber(summary.average_area_m2, 1)} m²` : "—"],
-        ["Media de imagens", formatNumber(summary.average_images, 1)],
-        ["Zonas unicas", formatNumber(summary.unique_locations)],
-      ];
+      const items = analysisData.metric_specs.map((spec) => {
+        const rawValue = summary[spec.key];
+        let value = "—";
+        if (spec.format === "euro") {
+          value = formatEuro(rawValue);
+        } else if (spec.format === "sqm") {
+          value = rawValue ? `${formatNumber(rawValue, 1)} m²` : "—";
+        } else {
+          value = formatNumber(rawValue);
+        }
+        return [spec.label, value];
+      });
       document.getElementById("metricsGrid").innerHTML = items.map(([label, value]) => `
         <article class="metric">
           <div class="metric-label">${escapeHtml(label)}</div>
           <div class="metric-value">${escapeHtml(value)}</div>
         </article>
       `).join("");
+    }
+
+    function renderCharts() {
+      const root = document.getElementById("chartGrid");
+      root.innerHTML = analysisData.chart_specs.map((spec) => `
+        <article class="panel">
+          <div class="section-copy">
+            <h2>${escapeHtml(spec.title)}</h2>
+            <p class="muted">${escapeHtml(spec.description)}</p>
+          </div>
+          <div id="${escapeHtml(spec.chart_id)}" class="bar-list"></div>
+        </article>
+      `).join("");
+
+      for (const spec of analysisData.chart_specs) {
+        renderBarList(spec.chart_id, analysisData[spec.data_key], (item) => `${formatNumber(item.count)} anuncios`);
+      }
     }
 
     function renderBarList(elementId, items, formatter) {
@@ -1894,9 +1919,7 @@ ANALYSIS_HTML = """<!doctype html>
       const response = await fetch("/api/analysis");
       analysisData = await response.json();
       renderMetrics();
-      renderBarList("locationsChart", analysisData.top_locations, (item) => `${formatNumber(item.count)} anuncios`);
-      renderBarList("bedroomsChart", analysisData.bedrooms, (item) => `${formatNumber(item.count)} anuncios`);
-      renderBarList("typesChart", analysisData.property_types, (item) => `${formatNumber(item.count)} anuncios`);
+      renderCharts();
       renderAdsList();
     }
 
@@ -2201,12 +2224,13 @@ def _guess_property_type(record: dict[str, Any]) -> str | None:
 def _listing_images(record: dict[str, Any], limit: int | None = 24) -> list[str]:
     raw_images = record.get("images") or []
     images: list[str] = []
-    seen: set[str] = set()
+    seen_urls: set[str] = set()
+    seen_assets: set[str] = set()
     for item in raw_images:
         if not isinstance(item, str):
             continue
         url = item.strip()
-        if not url or url in seen:
+        if not url or url in seen_urls:
             continue
         lowered = url.lower()
         if any(
@@ -2225,7 +2249,12 @@ def _listing_images(record: dict[str, Any], limit: int | None = 24) -> list[str]
             continue
         if not re.search(r"\.(?:jpe?g|png|webp)(?:\?|$)", lowered):
             continue
-        seen.add(url)
+        asset_name = Path(urlparse(url).path).name
+        asset_key = asset_name.rsplit(".", 1)[0] if asset_name else lowered
+        if asset_key in seen_assets:
+            continue
+        seen_urls.add(url)
+        seen_assets.add(asset_key)
         images.append(url)
         if limit is not None and len(images) >= limit:
             break
@@ -2283,7 +2312,7 @@ def _analysis_payload(config_path: str | None = None) -> dict[str, Any]:
         if not listing_id:
             continue
 
-        images = _listing_images(record, limit=None)
+        images = _listing_images(record, limit=ANALYSIS_PREVIEW_IMAGE_LIMIT)
         address = str(record.get("address") or "").strip() or "Sem localizacao"
         title = str(record.get("title") or "").strip() or "Sem titulo"
         property_type = _guess_property_type(record) or "Nao identificado"
@@ -2338,7 +2367,9 @@ def _analysis_payload(config_path: str | None = None) -> dict[str, Any]:
 
     return {
         "ads": ads,
+        "chart_specs": [dict(spec) for spec in ANALYSIS_CHART_SPECS],
         "bedrooms": _bedroom_counter_rows(bedroom_counter),
+        "metric_specs": [dict(spec) for spec in ANALYSIS_METRIC_SPECS],
         "property_types": _counter_rows(property_counter),
         "summary": summary,
         "top_locations": _counter_rows(location_counter),
@@ -2368,7 +2399,7 @@ def _analysis_listing_html(config_path: str | None, listing_id: str) -> str:
 </body>
 </html>"""
 
-    images = _listing_images(record, limit=40)
+    images = _listing_images(record, limit=ANALYSIS_PREVIEW_IMAGE_LIMIT)
     title = str(record.get("title") or "").strip() or "Sem titulo"
     address = str(record.get("address") or "").strip() or "Sem localizacao"
     price_amount = _price_amount(record)
