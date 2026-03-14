@@ -1,0 +1,3537 @@
+<!doctype html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Portable Real Estate Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <style>
+    :root {
+      --bg: #f4f7fa;
+      --bg-soft: #eef3f8;
+      --surface: rgba(255, 255, 255, 0.92);
+      --surface-muted: rgba(248, 251, 253, 0.92);
+      --panel: rgba(255, 255, 255, 0.9);
+      --panel-border: rgba(16, 34, 46, 0.08);
+      --panel-shadow: 0 16px 42px rgba(15, 31, 45, 0.08);
+      --text: #12202a;
+      --text-strong: #0a1620;
+      --muted: #65727c;
+      --accent: #0f5b78;
+      --accent-deep: #0a3750;
+      --accent-soft: rgba(15, 91, 120, 0.08);
+      --accent-strong: #cb6a38;
+      --highlight: #f6e4c5;
+      --danger: #b85d4a;
+      --success: #19836f;
+      --radius-xl: 28px;
+      --radius-lg: 20px;
+      --radius-md: 14px;
+      --radius-sm: 10px;
+      --spacing: 20px;
+      --chart-height: 332px;
+      --transition: 180ms ease;
+      --font-body: Inter, "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-display: Inter, "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      background:
+        radial-gradient(circle at top left, rgba(255, 255, 255, 0.95), transparent 20%),
+        radial-gradient(circle at top right, rgba(213, 232, 242, 0.52), transparent 24%),
+        linear-gradient(160deg, var(--bg-soft) 0%, var(--bg) 48%, #f8fbfd 100%);
+      color: var(--text);
+      font-family: var(--font-body);
+    }
+
+    body {
+      padding: 18px;
+    }
+
+    button,
+    select,
+    input,
+    textarea {
+      font: inherit;
+      color: inherit;
+    }
+
+    a {
+      color: var(--accent);
+    }
+
+    .app-shell {
+      width: min(1840px, calc(100vw - 36px));
+      margin: 0 auto;
+      display: grid;
+      gap: var(--spacing);
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--panel-border);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--panel-shadow);
+      backdrop-filter: blur(10px);
+      min-width: 0;
+    }
+
+    .panel-body {
+      padding: 22px;
+    }
+
+    .hero {
+      padding: 26px;
+      display: grid;
+      gap: 18px;
+      background:
+        linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(236, 245, 249, 0.94)),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.5));
+    }
+
+    .eyebrow {
+      margin: 0;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--accent-deep);
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.25fr) minmax(320px, 0.75fr);
+      gap: 24px;
+      align-items: start;
+    }
+
+    .hero-copy {
+      display: grid;
+      gap: 14px;
+    }
+
+    .hero-copy h1,
+    .section-title,
+    .chart-title,
+    .detail-title,
+    .mapping-title,
+    .filter-title {
+      margin: 0;
+      font-family: var(--font-display);
+      letter-spacing: -0.03em;
+      color: var(--text-strong);
+    }
+
+    .hero-copy h1 {
+      font-size: clamp(34px, 4.4vw, 54px);
+      line-height: 0.95;
+      max-width: 10ch;
+    }
+
+    .muted,
+    .helper,
+    .empty-text,
+    .status-text,
+    .field-meta,
+    .kpi-help,
+    .mapping-help {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .button,
+    .upload-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      min-height: 42px;
+      padding: 0 16px;
+      border-radius: 999px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      text-decoration: none;
+      transition: transform var(--transition), box-shadow var(--transition), background var(--transition), border-color var(--transition);
+      font-weight: 700;
+      user-select: none;
+    }
+
+    .button:hover,
+    .upload-button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 22px rgba(20, 40, 48, 0.12);
+    }
+
+    .button-primary,
+    .upload-button {
+      background: linear-gradient(135deg, #0f6b72, #2c8990);
+      color: #fff;
+    }
+
+    .button-secondary {
+      background: rgba(255, 255, 255, 0.86);
+      border-color: rgba(15, 107, 114, 0.2);
+      color: #12353d;
+    }
+
+    .button-ghost {
+      background: rgba(15, 107, 114, 0.08);
+      border-color: rgba(15, 107, 114, 0.14);
+      color: var(--accent);
+    }
+
+    .button-danger {
+      background: rgba(184, 93, 74, 0.1);
+      border-color: rgba(184, 93, 74, 0.18);
+      color: var(--danger);
+    }
+
+    .upload-button input {
+      display: none;
+    }
+
+    .button-icon {
+      min-width: 42px;
+      padding: 0 14px;
+    }
+
+    .hero-card {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.8), rgba(248, 251, 253, 0.74));
+      border: 1px solid rgba(16, 34, 46, 0.08);
+      border-radius: var(--radius-lg);
+      padding: 18px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .pill-row,
+    .hero-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 30px;
+      padding: 0 12px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent-deep);
+      border: 1px solid rgba(15, 91, 120, 0.12);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .app-grid {
+      display: grid;
+      gap: var(--spacing);
+    }
+
+    .mapping-panel {
+      display: grid;
+      gap: 14px;
+    }
+
+    .mapping-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .mapping-banner-copy {
+      display: grid;
+      gap: 4px;
+    }
+
+    .mapping-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .mapping-body {
+      display: grid;
+      gap: 14px;
+      padding-top: 8px;
+      border-top: 1px solid rgba(16, 34, 46, 0.08);
+    }
+
+    .mapping-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .mapping-row {
+      border: 1px solid rgba(16, 34, 46, 0.08);
+      border-radius: 16px;
+      padding: 12px;
+      background: rgba(248, 251, 253, 0.88);
+      display: grid;
+      gap: 6px;
+    }
+
+    .mapping-row label {
+      font-weight: 800;
+      font-size: 13px;
+    }
+
+    .mapping-row select,
+    .mapping-row input,
+    .filter-search,
+    .chart-select {
+      width: 100%;
+      min-height: 40px;
+      border-radius: 12px;
+      border: 1px solid rgba(16, 34, 46, 0.12);
+      background: rgba(255, 255, 255, 0.94);
+      padding: 0 12px;
+      outline: none;
+    }
+
+    .mapping-row select:focus,
+    .mapping-row input:focus,
+    .filter-search:focus,
+    .chart-select:focus,
+    .range-number:focus,
+    .date-input:focus {
+      border-color: rgba(15, 107, 114, 0.48);
+      box-shadow: 0 0 0 4px rgba(15, 107, 114, 0.08);
+    }
+
+    .mapping-row .tag {
+      display: inline-flex;
+      align-items: center;
+      align-self: start;
+      justify-self: start;
+      min-height: 28px;
+      padding: 0 10px;
+      border-radius: 999px;
+      background: rgba(203, 106, 56, 0.12);
+      color: #8b3d1d;
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .dashboard-layout {
+      display: grid;
+      grid-template-columns: 320px minmax(0, 1fr);
+      gap: var(--spacing);
+      align-items: start;
+      transition: grid-template-columns var(--transition);
+    }
+
+    .dashboard-layout.is-sidebar-collapsed {
+      grid-template-columns: 108px minmax(0, 1fr);
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 18px;
+      display: grid;
+      gap: var(--spacing);
+      align-content: start;
+      min-width: 0;
+    }
+
+    .sidebar-panel {
+      overflow: hidden;
+    }
+
+    .sidebar-topbar {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .sidebar-summary {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .sidebar-content {
+      display: grid;
+      gap: 14px;
+      transition: opacity var(--transition), max-height var(--transition);
+    }
+
+    .sidebar.is-collapsed .sidebar-content,
+    .sidebar.is-collapsed .sidebar-summary,
+    .sidebar.is-collapsed .helper {
+      display: none;
+    }
+
+    .sidebar.is-collapsed .sidebar-panel .panel-body {
+      padding: 16px 12px;
+    }
+
+    .sidebar.is-collapsed .sidebar-topbar {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .sidebar.is-collapsed .filter-title {
+      font-size: 16px;
+    }
+
+    .sidebar-section {
+      display: grid;
+      gap: 14px;
+    }
+
+    .filter-actions {
+      display: grid;
+      gap: 10px;
+    }
+
+    .filter-groups {
+      display: grid;
+      gap: 10px;
+      max-height: calc(100vh - 260px);
+      overflow: auto;
+      padding-right: 4px;
+    }
+
+    .filter-card {
+      border: 1px solid rgba(16, 34, 46, 0.08);
+      border-radius: 18px;
+      background: rgba(248, 251, 253, 0.9);
+      padding: 12px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .filter-card h3 {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .filter-card .field-meta {
+      font-size: 12px;
+    }
+
+    .search-block {
+      display: grid;
+      gap: 10px;
+    }
+
+    .range-grid {
+      display: grid;
+      gap: 10px;
+    }
+
+    .range-inputs {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .range-number,
+    .date-input {
+      width: 100%;
+      min-height: 40px;
+      border-radius: 14px;
+      border: 1px solid rgba(20, 40, 48, 0.14);
+      background: rgba(255, 255, 255, 0.92);
+      padding: 0 12px;
+      outline: none;
+    }
+
+    .dual-range {
+      position: relative;
+      height: 38px;
+      display: grid;
+      align-items: center;
+    }
+
+    .dual-range-track {
+      position: absolute;
+      left: 2px;
+      right: 2px;
+      height: 8px;
+      border-radius: 999px;
+      background: rgba(20, 40, 48, 0.08);
+      overflow: hidden;
+    }
+
+    .dual-range-fill {
+      position: absolute;
+      top: 0;
+      height: 100%;
+      background: linear-gradient(135deg, #0f6b72, #50a7ad);
+      border-radius: 999px;
+    }
+
+    .dual-range input[type="range"] {
+      position: absolute;
+      left: 0;
+      right: 0;
+      width: 100%;
+      margin: 0;
+      pointer-events: none;
+      appearance: none;
+      background: none;
+      height: 38px;
+    }
+
+    .dual-range input[type="range"]::-webkit-slider-thumb {
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #fff;
+      border: 3px solid var(--accent);
+      pointer-events: auto;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(15, 107, 114, 0.2);
+    }
+
+    .dual-range input[type="range"]::-moz-range-thumb {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #fff;
+      border: 3px solid var(--accent);
+      pointer-events: auto;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(15, 107, 114, 0.2);
+    }
+
+    .dual-range input[type="range"]::-webkit-slider-runnable-track,
+    .dual-range input[type="range"]::-moz-range-track {
+      background: transparent;
+    }
+
+    .multi-select {
+      display: grid;
+      gap: 8px;
+    }
+
+    .multi-select details {
+      border-radius: 14px;
+      border: 1px solid rgba(20, 40, 48, 0.12);
+      background: rgba(255, 255, 255, 0.92);
+      overflow: hidden;
+    }
+
+    .multi-select summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 12px 14px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .multi-select summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .multi-select-content {
+      display: grid;
+      gap: 10px;
+      padding: 0 14px 14px;
+    }
+
+    .multi-select-search {
+      width: 100%;
+      min-height: 38px;
+      border-radius: 12px;
+      border: 1px solid rgba(20, 40, 48, 0.12);
+      background: rgba(255, 255, 255, 0.96);
+      padding: 0 10px;
+      outline: none;
+    }
+
+    .multi-options {
+      display: grid;
+      gap: 8px;
+      max-height: 180px;
+      overflow: auto;
+      padding-right: 4px;
+    }
+
+    .option-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+    }
+
+    .content {
+      display: grid;
+      gap: var(--spacing);
+    }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 14px;
+    }
+
+    .metric-card,
+    .comparison-metric,
+    .detail-metadata-card,
+    .dataset-stat {
+      border-radius: 18px;
+      border: 1px solid rgba(16, 34, 46, 0.08);
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(246, 250, 252, 0.86));
+      padding: 16px;
+      display: grid;
+      gap: 6px;
+    }
+
+    .metric-label,
+    .comparison-label,
+    .detail-metadata-label,
+    .dataset-stat-label {
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+
+    .metric-value,
+    .dataset-stat-value {
+      font-size: 26px;
+      line-height: 1.08;
+      font-weight: 800;
+    }
+
+    .comparison-value {
+      font-size: 22px;
+      line-height: 1.12;
+      font-weight: 800;
+      overflow-wrap: anywhere;
+    }
+
+    .detail-metadata-value {
+      font-size: 18px;
+      line-height: 1.2;
+      font-weight: 800;
+      overflow-wrap: anywhere;
+    }
+
+    .charts-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--spacing);
+    }
+
+    .chart-card {
+      display: grid;
+      gap: 12px;
+    }
+
+    .chart-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .chart-title {
+      font-size: 24px;
+      font-weight: 800;
+    }
+
+    .chart-controls {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      min-width: 220px;
+      justify-content: flex-end;
+    }
+
+    .chart-host {
+      position: relative;
+      min-height: var(--chart-height);
+      width: 100%;
+      border: 1px solid rgba(16, 34, 46, 0.08);
+      border-radius: 18px;
+      background: linear-gradient(180deg, rgba(252, 253, 254, 1), rgba(248, 251, 253, 0.94));
+      padding: 8px;
+    }
+
+    .chart-host svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+      overflow: visible;
+    }
+
+    .lower-grid {
+      display: grid;
+      grid-template-columns: 400px minmax(0, 1fr);
+      gap: var(--spacing);
+      align-items: start;
+    }
+
+    .listing-panel,
+    .detail-panel-shell {
+      display: grid;
+      gap: 14px;
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .panel-header-copy {
+      display: grid;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 34px;
+      padding: 0 12px;
+      border-radius: 999px;
+      background: rgba(10, 55, 80, 0.06);
+      color: #24363c;
+      font-weight: 800;
+      font-size: 12px;
+      border: 1px solid rgba(16, 34, 46, 0.08);
+    }
+
+    .listing-list {
+      display: grid;
+      gap: 12px;
+      max-height: 980px;
+      overflow: auto;
+      padding-right: 4px;
+    }
+
+    .listing-card {
+      display: grid;
+      grid-template-columns: 116px minmax(0, 1fr);
+      gap: 14px;
+      border-radius: 18px;
+      border: 1px solid rgba(16, 34, 46, 0.08);
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(247, 250, 252, 0.92));
+      padding: 14px;
+      cursor: pointer;
+      transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
+    }
+
+    .listing-card:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 24px rgba(20, 40, 48, 0.08);
+    }
+
+    .listing-card.is-selected {
+      border-color: rgba(203, 106, 56, 0.42);
+      box-shadow: 0 16px 28px rgba(203, 106, 56, 0.12);
+      background: linear-gradient(180deg, rgba(255, 255, 255, 1), rgba(255, 248, 244, 0.94));
+    }
+
+    .listing-thumb {
+      width: 116px;
+      height: 104px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, rgba(15, 91, 120, 0.1), rgba(15, 91, 120, 0.04));
+      overflow: hidden;
+      display: grid;
+      place-items: center;
+      font-size: 12px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .listing-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .listing-body {
+      min-width: 0;
+      display: grid;
+      gap: 8px;
+      align-content: start;
+    }
+
+    .listing-title {
+      margin: 0;
+      font-weight: 800;
+      font-size: 18px;
+      line-height: 1.2;
+    }
+
+    .listing-price {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--text-strong);
+    }
+
+    .listing-badges {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .listing-tag {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 0 10px;
+      border-radius: 999px;
+      background: rgba(10, 55, 80, 0.06);
+      border: 1px solid rgba(16, 34, 46, 0.08);
+      color: #365360;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .listing-line {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .detail-empty,
+    .chart-empty,
+    .empty-state {
+      min-height: 200px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      color: var(--muted);
+      border: 1px dashed rgba(20, 40, 48, 0.14);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.54);
+    }
+
+    .detail-shell {
+      display: grid;
+      gap: 18px;
+    }
+
+    .detail-topbar {
+      display: grid;
+      gap: 14px;
+    }
+
+    .detail-hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+      gap: 18px;
+    }
+
+    .image-stage {
+      display: grid;
+      gap: 12px;
+    }
+
+    .hero-image {
+      min-height: 320px;
+      border-radius: 20px;
+      overflow: hidden;
+      background: rgba(16, 34, 46, 0.06);
+      display: grid;
+      place-items: center;
+    }
+
+    .hero-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .thumb-strip {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+      gap: 10px;
+    }
+
+    .thumb-button {
+      border: 2px solid transparent;
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: 14px;
+      padding: 0;
+      overflow: hidden;
+      cursor: pointer;
+      height: 72px;
+      transition: border-color var(--transition), transform var(--transition);
+    }
+
+    .thumb-button:hover {
+      transform: translateY(-1px);
+    }
+
+    .thumb-button.is-selected {
+      border-color: rgba(203, 91, 43, 0.6);
+    }
+
+    .thumb-button img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .detail-body {
+      display: grid;
+      gap: 16px;
+    }
+
+    .detail-title {
+      font-size: 30px;
+      line-height: 1.05;
+    }
+
+    .detail-kpi-strip {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .detail-kpi-card {
+      border-radius: 18px;
+      padding: 14px 16px;
+      border: 1px solid rgba(16, 34, 46, 0.08);
+      background: linear-gradient(180deg, rgba(247, 250, 252, 0.94), rgba(255, 255, 255, 0.96));
+      display: grid;
+      gap: 6px;
+    }
+
+    .detail-kpi-label {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .detail-kpi-value {
+      font-size: 20px;
+      line-height: 1.15;
+      font-weight: 800;
+      overflow-wrap: anywhere;
+    }
+
+    .detail-metadata-grid,
+    .dataset-stats-grid,
+    .comparison-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .detail-metadata-card,
+    .comparison-metric {
+      min-width: 0;
+      align-content: start;
+    }
+
+    .detail-section {
+      display: grid;
+      gap: 10px;
+    }
+
+    .detail-section h3 {
+      margin: 0;
+      font-size: 18px;
+      font-family: var(--font-display);
+      letter-spacing: -0.02em;
+    }
+
+    .detail-description {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.68;
+      white-space: pre-wrap;
+    }
+
+    .feature-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 10px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .feature-list li {
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: rgba(10, 55, 80, 0.05);
+      border: 1px solid rgba(10, 55, 80, 0.08);
+      font-size: 14px;
+    }
+
+    .comparison-chart-grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .mini-plot {
+      border: 1px solid rgba(16, 34, 46, 0.08);
+      border-radius: 16px;
+      background: rgba(250, 252, 253, 0.94);
+      padding: 12px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .mini-plot svg {
+      width: 100%;
+      height: 72px;
+      display: block;
+    }
+
+    .legend {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .tooltip {
+      position: fixed;
+      z-index: 20;
+      max-width: 280px;
+      pointer-events: none;
+      background: rgba(21, 32, 36, 0.94);
+      color: #fff;
+      padding: 10px 12px;
+      border-radius: 14px;
+      box-shadow: 0 14px 24px rgba(0, 0, 0, 0.18);
+      font-size: 13px;
+      line-height: 1.45;
+      opacity: 0;
+      transform: translateY(6px);
+      transition: opacity 120ms ease, transform 120ms ease;
+    }
+
+    .tooltip.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    @media (max-width: 1360px) {
+      .charts-grid,
+      .metrics-grid,
+      .mapping-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .detail-metadata-grid,
+      .dataset-stats-grid,
+      .comparison-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 1180px) {
+      .dashboard-layout,
+      .lower-grid,
+      .detail-hero,
+      .detail-kpi-strip,
+      .hero-grid,
+      .charts-grid,
+      .mapping-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        position: static;
+      }
+    }
+
+    @media (max-width: 900px) {
+      body {
+        padding: 12px;
+      }
+
+      .app-shell {
+        width: calc(100vw - 24px);
+      }
+
+      .panel-body,
+      .hero {
+        padding: 18px;
+      }
+
+      .metrics-grid,
+      .detail-metadata-grid,
+      .dataset-stats-grid,
+      .comparison-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .chart-title {
+        font-size: 30px;
+      }
+
+      .listing-card {
+        grid-template-columns: 96px minmax(0, 1fr);
+      }
+
+      .listing-thumb {
+        width: 96px;
+        height: 88px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="panel hero">
+      <p class="eyebrow">Portable Dashboard</p>
+      <div class="hero-grid">
+        <div class="hero-copy">
+          <h1>Explora imóveis com upload local e D3</h1>
+          <p class="muted">
+            Este dashboard corre inteiro dentro deste ficheiro. Faz upload de um
+            <strong>CSV</strong>, <strong>JSON</strong> ou <strong>JSONL</strong>,
+            revê o mapeamento dos campos e trabalha os dados sem servidor.
+          </p>
+          <div class="hero-actions">
+            <label class="upload-button">
+              <input id="file-input" type="file" accept=".csv,.json,.jsonl,application/json,text/csv">
+              Carregar dataset
+            </label>
+            <button id="reset-data-btn" class="button button-secondary" type="button">Limpar dataset</button>
+            <button id="reset-filters-btn" class="button button-ghost" type="button">Reset filtros</button>
+          </div>
+          <p id="dataset-status" class="status-text">
+            À espera de um ficheiro. O dataset fica apenas neste browser.
+          </p>
+          <div id="hero-pills" class="hero-pills"></div>
+        </div>
+        <div class="hero-card">
+          <div class="panel-header-copy">
+            <h2 class="section-title">O que faz</h2>
+            <p class="helper">
+              Inspeciona colunas automaticamente, deixa mapear semânticas de imobiliário,
+              cria filtros por tipo de dado e compara qualquer anúncio com o subconjunto filtrado.
+            </p>
+          </div>
+          <div id="dataset-stats-grid" class="dataset-stats-grid">
+            <div class="dataset-stat">
+              <div class="dataset-stat-label">Linhas</div>
+              <div class="dataset-stat-value">0</div>
+              <div class="kpi-help">À espera de upload.</div>
+            </div>
+            <div class="dataset-stat">
+              <div class="dataset-stat-label">Colunas</div>
+              <div class="dataset-stat-value">0</div>
+              <div class="kpi-help">Inspeção automática do schema.</div>
+            </div>
+            <div class="dataset-stat">
+              <div class="dataset-stat-label">Tipos</div>
+              <div class="dataset-stat-value">—</div>
+              <div class="kpi-help">Numéricas, categóricas, datas e texto.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <section id="mapping-panel" class="panel hidden">
+      <div class="panel-body mapping-panel">
+        <div class="mapping-header">
+          <div class="mapping-banner-copy">
+            <p class="eyebrow">Schema</p>
+            <h2 class="mapping-title">Mapeamento de campos</h2>
+            <p class="mapping-help">Opcional. Revê só se a deteção automática não estiver alinhada.</p>
+          </div>
+          <div class="mapping-actions">
+            <div id="mapping-summary" class="pill-row"></div>
+            <button id="toggle-mapping-btn" class="button button-secondary button-icon" type="button">Mostrar</button>
+          </div>
+        </div>
+        <div id="mapping-body" class="mapping-body hidden">
+          <div id="mapping-grid" class="mapping-grid"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="dashboard-layout" class="dashboard-layout">
+      <aside id="sidebar" class="sidebar">
+        <section class="panel sidebar-panel">
+          <div class="panel-body sidebar-section">
+            <div class="sidebar-topbar">
+              <div class="panel-header-copy">
+                <h2 class="filter-title">Painel analítico</h2>
+                <p class="helper">Pesquisa, filtros e ações rápidas do dashboard.</p>
+              </div>
+              <button id="toggle-filters-btn" class="button button-secondary button-icon" type="button">Ocultar</button>
+            </div>
+            <div id="filter-summary" class="sidebar-summary"></div>
+            <div id="filters-body" class="sidebar-content">
+              <div class="search-block">
+                <label for="global-search"><strong>Pesquisa global</strong></label>
+                <input id="global-search" class="filter-search" type="search" placeholder="Título, ID, zona, tipo, descrição...">
+                <p class="field-meta">Pesquisa nos principais campos textuais e nos mapeamentos ativos.</p>
+              </div>
+              <div class="filter-actions">
+                <button id="focus-selected-btn" class="button button-secondary" type="button">Voltar ao selecionado</button>
+                <button id="clear-selection-btn" class="button button-danger" type="button">Limpar seleção</button>
+              </div>
+              <div id="filter-groups" class="filter-groups">
+                <div class="empty-state">Carrega um dataset para gerar filtros.</div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </aside>
+
+      <main class="content">
+        <section class="panel">
+          <div class="panel-body">
+            <div class="panel-header">
+              <div class="panel-header-copy">
+                <h2 class="section-title">Métricas-chave</h2>
+                <p class="helper">Resumo do subconjunto filtrado no momento.</p>
+              </div>
+              <div id="filtered-count-badge" class="badge">0 anúncios</div>
+            </div>
+            <div id="metrics-grid" class="metrics-grid">
+              <div class="metric-card">
+                <div class="metric-label">Total</div>
+                <div class="metric-value">0</div>
+                <div class="kpi-help">Carrega um dataset.</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="charts-grid">
+          <article class="panel">
+            <div class="panel-body chart-card">
+              <div class="chart-header">
+                <div class="panel-header-copy">
+                  <h2 class="chart-title">Distribuição</h2>
+                  <p class="helper">Histograma do campo numérico escolhido.</p>
+                </div>
+                <div class="chart-controls">
+                  <select id="hist-field-select" class="chart-select"></select>
+                </div>
+              </div>
+              <div class="legend">
+                <span><i class="legend-dot" style="background:#6aa6ae"></i> Conjunto filtrado</span>
+                <span><i class="legend-dot" style="background:#cb5b2b"></i> Anúncio selecionado</span>
+              </div>
+              <div id="hist-chart" class="chart-host"></div>
+            </div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-body chart-card">
+              <div class="chart-header">
+                <div class="panel-header-copy">
+                  <h2 class="chart-title">Categorias</h2>
+                  <p class="helper">Barras automáticas para o campo categórico escolhido.</p>
+                </div>
+                <div class="chart-controls">
+                  <select id="category-field-select" class="chart-select"></select>
+                </div>
+              </div>
+              <div class="legend">
+                <span><i class="legend-dot" style="background:#0f6b72"></i> Contagem</span>
+                <span><i class="legend-dot" style="background:#cb5b2b"></i> Categoria do selecionado</span>
+              </div>
+              <div id="bar-chart" class="chart-host"></div>
+            </div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-body chart-card">
+              <div class="chart-header">
+                <div class="panel-header-copy">
+                  <h2 class="chart-title">Relação</h2>
+                  <p class="helper">Scatter com tendência. Clicar num ponto seleciona o anúncio.</p>
+                </div>
+                <div class="chart-controls">
+                  <select id="scatter-x-select" class="chart-select"></select>
+                  <select id="scatter-y-select" class="chart-select"></select>
+                </div>
+              </div>
+              <div class="legend">
+                <span><i class="legend-dot" style="background:#6aa6ae"></i> Restantes anúncios</span>
+                <span><i class="legend-dot" style="background:#cb5b2b"></i> Selecionado</span>
+              </div>
+              <div id="scatter-chart" class="chart-host"></div>
+            </div>
+          </article>
+        </section>
+
+        <section class="lower-grid">
+          <article class="panel">
+            <div class="panel-body listing-panel">
+              <div class="panel-header">
+                <div class="panel-header-copy">
+                  <h2 class="section-title">Explorador de anúncios</h2>
+                  <p class="helper">Lista scrollável com cartões do subconjunto atual.</p>
+                </div>
+                <div id="listing-summary" class="badge">Sem dados</div>
+              </div>
+              <div id="listing-list" class="listing-list">
+                <div class="empty-state">Carrega um dataset para veres os cartões.</div>
+              </div>
+            </div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-body detail-panel-shell">
+              <div class="panel-header">
+                <div class="panel-header-copy">
+                  <h2 class="section-title">Detalhe e comparação</h2>
+                  <p class="helper">
+                    O anúncio selecionado é comparado com o resto do conjunto filtrado.
+                  </p>
+                </div>
+                <div id="selection-badge" class="badge">Sem seleção</div>
+              </div>
+              <div id="detail-panel" class="detail-empty">
+                Seleciona um anúncio na lista ou no scatter para abrir detalhe, imagens e comparação.
+              </div>
+            </div>
+          </article>
+        </section>
+      </main>
+    </section>
+  </div>
+
+  <div id="tooltip" class="tooltip"></div>
+
+  <script>
+    // ---------- Configuração base ----------
+    const SEMANTIC_FIELDS = [
+      {
+        key: "price",
+        label: "Preço",
+        type: "numeric",
+        help: "Valor total do imóvel.",
+        aliases: ["price", "preco", "price_amount", "price_amount_eur", "valor", "asking_price", "amount"]
+      },
+      {
+        key: "area",
+        label: "Área",
+        type: "numeric",
+        help: "Área útil ou bruta do imóvel.",
+        aliases: ["area", "m2", "sqm", "square_meters", "area_m2", "area_total", "size", "surface"]
+      },
+      {
+        key: "bedrooms",
+        label: "Quartos",
+        type: "numeric",
+        help: "Número de quartos ou tipologia.",
+        aliases: ["bedrooms", "quartos", "rooms", "tipologia", "dormitorios", "bedroom_count"]
+      },
+      {
+        key: "bathrooms",
+        label: "Casas de banho",
+        type: "numeric",
+        help: "Número de casas de banho.",
+        aliases: ["bathrooms", "wc", "banhos", "casas_de_banho", "bathroom_count"]
+      },
+      {
+        key: "location",
+        label: "Localização",
+        type: "categorical",
+        help: "Zona, bairro, cidade ou morada curta.",
+        aliases: ["location", "address", "zona", "bairro", "city", "municipality", "localizacao", "address_short"]
+      },
+      {
+        key: "propertyType",
+        label: "Tipo de imóvel",
+        type: "categorical",
+        help: "Apartamento, moradia, terreno, etc.",
+        aliases: ["property_type", "propertytype", "type", "tipo", "category", "home_type", "listing_type"]
+      },
+      {
+        key: "pricePerM2",
+        label: "Preço por m²",
+        type: "numeric",
+        help: "Preço dividido pela área. Pode ser derivado automaticamente.",
+        aliases: ["price_per_m2", "price_m2", "pricesqm", "eur_m2", "valor_m2"]
+      },
+      {
+        key: "title",
+        label: "Título",
+        type: "text",
+        help: "Título principal do anúncio.",
+        aliases: ["title", "name", "headline", "titulo"]
+      },
+      {
+        key: "description",
+        label: "Descrição",
+        type: "text",
+        help: "Texto do anúncio.",
+        aliases: ["description", "descricao", "summary", "comment", "notes"]
+      },
+      {
+        key: "listingId",
+        label: "ID do anúncio",
+        type: "text",
+        help: "Identificador único ou quase único do registo.",
+        aliases: ["listing_id", "id", "property_id", "record_id", "uid"]
+      },
+      {
+        key: "listingUrl",
+        label: "URL do anúncio",
+        type: "text",
+        help: "Ligação original para o anúncio.",
+        aliases: ["url", "listing_url", "link", "href", "final_url"]
+      },
+      {
+        key: "images",
+        label: "Imagens",
+        type: "text",
+        help: "Lista, texto ou coluna com URLs de imagens.",
+        aliases: ["images", "photos", "gallery", "photo_urls", "image_urls", "image", "thumbnail"]
+      },
+      {
+        key: "date",
+        label: "Data",
+        type: "date",
+        help: "Data de publicação, captura ou atualização.",
+        aliases: ["date", "created_at", "updated_at", "fetched_at", "published_at", "data"]
+      }
+    ];
+
+    const FIELD_PRIORITY = ["price", "area", "pricePerM2", "bedrooms", "bathrooms"];
+    const MAX_CATEGORY_OPTIONS = 40;
+    const MAX_BAR_CATEGORIES = 10;
+
+    const state = {
+      fileName: "",
+      rawRows: [],
+      schema: [],
+      mapping: {},
+      normalizedRows: [],
+      fieldCatalog: [],
+      filterDefinitions: [],
+      filters: { searchText: "", values: {} },
+      filteredRows: [],
+      selectedListingId: null,
+      detailImageIndex: 0,
+      chartConfig: {
+        histogramField: "",
+        categoryField: "",
+        scatterX: "",
+        scatterY: ""
+      }
+    };
+
+    const refs = {
+      fileInput: document.getElementById("file-input"),
+      resetDataBtn: document.getElementById("reset-data-btn"),
+      resetFiltersBtn: document.getElementById("reset-filters-btn"),
+      clearSelectionBtn: document.getElementById("clear-selection-btn"),
+      focusSelectedBtn: document.getElementById("focus-selected-btn"),
+      datasetStatus: document.getElementById("dataset-status"),
+      heroPills: document.getElementById("hero-pills"),
+      datasetStatsGrid: document.getElementById("dataset-stats-grid"),
+      mappingPanel: document.getElementById("mapping-panel"),
+      mappingGrid: document.getElementById("mapping-grid"),
+      mappingSummary: document.getElementById("mapping-summary"),
+      globalSearch: document.getElementById("global-search"),
+      filterGroups: document.getElementById("filter-groups"),
+      metricsGrid: document.getElementById("metrics-grid"),
+      filteredCountBadge: document.getElementById("filtered-count-badge"),
+      histFieldSelect: document.getElementById("hist-field-select"),
+      categoryFieldSelect: document.getElementById("category-field-select"),
+      scatterXSelect: document.getElementById("scatter-x-select"),
+      scatterYSelect: document.getElementById("scatter-y-select"),
+      histChart: document.getElementById("hist-chart"),
+      barChart: document.getElementById("bar-chart"),
+      scatterChart: document.getElementById("scatter-chart"),
+      listingSummary: document.getElementById("listing-summary"),
+      listingList: document.getElementById("listing-list"),
+      detailPanel: document.getElementById("detail-panel"),
+      selectionBadge: document.getElementById("selection-badge"),
+      tooltip: document.getElementById("tooltip")
+    };
+
+    // ---------- Helpers de formatação ----------
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    function slugify(value) {
+      return String(value ?? "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "_")
+        .replace(/^_+|_+$/g, "");
+    }
+
+    function isMissing(value) {
+      if (value === null || value === undefined) {
+        return true;
+      }
+      if (Array.isArray(value)) {
+        return value.length === 0;
+      }
+      if (typeof value === "string") {
+        return value.trim() === "";
+      }
+      return false;
+    }
+
+    function valueToText(value) {
+      if (value === null || value === undefined) {
+        return "";
+      }
+      if (Array.isArray(value)) {
+        return value.map(valueToText).filter(Boolean).join(" | ");
+      }
+      if (value instanceof Date) {
+        return Number.isNaN(value.getTime()) ? "" : value.toISOString();
+      }
+      if (typeof value === "object") {
+        try {
+          return JSON.stringify(value);
+        } catch (_error) {
+          return "";
+        }
+      }
+      return String(value).trim();
+    }
+
+    function parseLocaleNumber(value) {
+      if (value === null || value === undefined || value === "" || typeof value === "boolean") {
+        return null;
+      }
+      if (typeof value === "number") {
+        return Number.isFinite(value) ? value : null;
+      }
+
+      let text = String(value).trim();
+      if (!text) {
+        return null;
+      }
+
+      let stripped = text
+        .replace(/\u00A0/g, " ")
+        .replace(/€/g, "")
+        .replace(/m²/gi, "")
+        .replace(/\b(?:eur|euro|metros|metro|sqm|sqft|m2|ha|usd|gbp)\b/gi, "")
+        .replace(/%/g, "")
+        .trim();
+
+      if (/[a-z]/i.test(stripped.replace(/\b(?:pt|en|br)\b/gi, ""))) {
+        return null;
+      }
+
+      stripped = stripped.replace(/\s+/g, "");
+      if (!/[0-9]/.test(stripped)) {
+        return null;
+      }
+
+      if (stripped.includes(",") && stripped.includes(".")) {
+        if (stripped.lastIndexOf(",") > stripped.lastIndexOf(".")) {
+          stripped = stripped.replace(/\./g, "").replace(",", ".");
+        } else {
+          stripped = stripped.replace(/,/g, "");
+        }
+      } else if (stripped.includes(",")) {
+        const parts = stripped.split(",");
+        if (parts.length === 2 && parts[1].length <= 2) {
+          stripped = parts[0].replace(/\./g, "") + "." + parts[1];
+        } else {
+          stripped = stripped.replace(/,/g, "");
+        }
+      } else if ((stripped.match(/\./g) || []).length > 1) {
+        stripped = stripped.replace(/\./g, "");
+      } else if (stripped.includes(".") && stripped.split(".")[1].length === 3) {
+        stripped = stripped.replace(/\./g, "");
+      }
+
+      const parsed = Number(stripped);
+      return Number.isFinite(parsed) ? parsed : null;
+    }
+
+    function parseDateSafe(value) {
+      if (value instanceof Date) {
+        return Number.isNaN(value.getTime()) ? null : value;
+      }
+      if (value === null || value === undefined || value === "") {
+        return null;
+      }
+      if (typeof value === "number") {
+        if (!Number.isFinite(value)) {
+          return null;
+        }
+        const fromNumber = value > 10_000_000_000 ? new Date(value) : new Date(value * 1000);
+        return Number.isNaN(fromNumber.getTime()) ? null : fromNumber;
+      }
+
+      const text = String(value).trim();
+      if (!text || /^[tT]\d+$/.test(text)) {
+        return null;
+      }
+
+      const parsed = new Date(text);
+      return Number.isNaN(parsed.getTime()) ? null : parsed;
+    }
+
+    function formatNumber(value, digits = 0) {
+      if (value === null || value === undefined || Number.isNaN(value)) {
+        return "—";
+      }
+      return new Intl.NumberFormat("pt-PT", {
+        minimumFractionDigits: digits,
+        maximumFractionDigits: digits
+      }).format(value);
+    }
+
+    function formatCurrency(value, digits = 0) {
+      if (value === null || value === undefined || Number.isNaN(value)) {
+        return "—";
+      }
+      return new Intl.NumberFormat("pt-PT", {
+        style: "currency",
+        currency: "EUR",
+        maximumFractionDigits: digits,
+        minimumFractionDigits: digits
+      }).format(value);
+    }
+
+    function formatDate(value) {
+      if (!(value instanceof Date) || Number.isNaN(value.getTime())) {
+        return "—";
+      }
+      return new Intl.DateTimeFormat("pt-PT", {
+        dateStyle: "medium"
+      }).format(value);
+    }
+
+    function formatFieldValue(field, value) {
+      if (!field) {
+        return valueToText(value) || "—";
+      }
+      if (field.type === "date") {
+        return formatDate(value);
+      }
+      if (field.format === "currency") {
+        return formatCurrency(value);
+      }
+      if (field.format === "area") {
+        return value === null || value === undefined ? "—" : `${formatNumber(value, value % 1 ? 1 : 0)} m²`;
+      }
+      if (field.type === "numeric") {
+        return formatNumber(value, value % 1 ? 1 : 0);
+      }
+      return valueToText(value) || "—";
+    }
+
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+
+    function formatPercentile(value) {
+      if (value === null || value === undefined || Number.isNaN(value)) {
+        return "—";
+      }
+      return `${Math.round(value)}º percentil`;
+    }
+
+    function formatDelta(value, field) {
+      if (value === null || value === undefined || Number.isNaN(value)) {
+        return "—";
+      }
+      const prefix = value > 0 ? "+" : "";
+      if (field && field.format === "currency") {
+        return `${prefix}${formatCurrency(value)}`;
+      }
+      if (field && field.format === "area") {
+        return `${prefix}${formatNumber(value, value % 1 ? 1 : 0)} m²`;
+      }
+      return `${prefix}${formatNumber(value, value % 1 ? 1 : 0)}`;
+    }
+
+    function formatZScore(value) {
+      if (value === null || value === undefined || Number.isNaN(value)) {
+        return "—";
+      }
+      return `${value > 0 ? "+" : ""}${value.toFixed(2)}`;
+    }
+
+    function cloneDefaultValue(value) {
+      return Array.isArray(value) ? [...value] : value;
+    }
+
+    function showTooltip(event, html) {
+      refs.tooltip.innerHTML = html;
+      refs.tooltip.classList.add("is-visible");
+      moveTooltip(event);
+    }
+
+    function moveTooltip(event) {
+      refs.tooltip.style.left = `${event.clientX + 16}px`;
+      refs.tooltip.style.top = `${event.clientY + 16}px`;
+    }
+
+    function hideTooltip() {
+      refs.tooltip.classList.remove("is-visible");
+    }
+
+    // ---------- Deteção de schema ----------
+    function detectSchema(rows) {
+      const columnSet = new Set();
+      rows.forEach((row) => {
+        if (row && typeof row === "object" && !Array.isArray(row)) {
+          Object.keys(row).forEach((key) => columnSet.add(key));
+        }
+      });
+
+      return Array.from(columnSet).sort().map((columnName) => {
+        const values = rows.map((row) => row[columnName]).filter((value) => !isMissing(value));
+        const sample = values.slice(0, 30);
+        const nonEmptyCount = values.length;
+        const numericCount = sample.filter((value) => parseLocaleNumber(value) !== null).length;
+        const dateCount = sample.filter((value) => parseDateSafe(value) !== null && parseLocaleNumber(value) === null).length;
+        const arrayCount = sample.filter((value) => Array.isArray(value)).length;
+        const objectCount = sample.filter((value) => value && typeof value === "object" && !Array.isArray(value)).length;
+
+        let type = "text";
+        let filterable = true;
+
+        if (arrayCount > sample.length * 0.4 || objectCount > sample.length * 0.4) {
+          type = "text";
+          filterable = false;
+        } else if (nonEmptyCount && numericCount >= Math.max(3, sample.length * 0.65)) {
+          type = "numeric";
+        } else if (nonEmptyCount && dateCount >= Math.max(3, sample.length * 0.6)) {
+          type = "date";
+        } else {
+          const categoricalValues = values.map(valueToText).filter(Boolean);
+          const uniqueCount = new Set(categoricalValues).size;
+          if (uniqueCount > 0 && uniqueCount <= Math.min(MAX_CATEGORY_OPTIONS, Math.max(10, Math.ceil(nonEmptyCount * 0.22)))) {
+            type = "categorical";
+          }
+        }
+
+        return {
+          name: columnName,
+          normalizedName: slugify(columnName),
+          type,
+          filterable,
+          nonEmptyCount,
+          uniqueCount: new Set(values.map(valueToText).filter(Boolean)).size,
+          samples: sample.map(valueToText).filter(Boolean).slice(0, 3)
+        };
+      });
+    }
+
+    function suggestMappings(schema) {
+      const mapping = {};
+      SEMANTIC_FIELDS.forEach((semantic) => {
+        let bestScore = -1;
+        let bestColumn = "";
+        schema.forEach((column) => {
+          const typeMatch = semantic.type === column.type || (semantic.type === "text" && column.type !== "numeric") || (semantic.key === "images");
+          if (!typeMatch && semantic.key !== "listingId") {
+            return;
+          }
+
+          let score = 0;
+          const normalizedName = column.normalizedName;
+          semantic.aliases.forEach((alias) => {
+            const normalizedAlias = slugify(alias);
+            if (!normalizedAlias) {
+              return;
+            }
+            if (normalizedName === normalizedAlias) {
+              score += 12;
+            } else if (normalizedName.includes(normalizedAlias)) {
+              score += 6;
+            }
+          });
+
+          if (semantic.key === "images" && column.samples.some((sample) => /https?:\/\//i.test(sample))) {
+            score += 8;
+          }
+
+          if (semantic.key === "listingUrl" && column.samples.some((sample) => /^https?:\/\//i.test(sample))) {
+            score += 8;
+          }
+
+          if (semantic.key === "listingId" && /(^|_)(id|uid|listing_id|property_id)($|_)/.test(normalizedName)) {
+            score += 10;
+          }
+
+          if (semantic.key === "date" && column.type === "date") {
+            score += 6;
+          }
+
+          if (score > bestScore) {
+            bestScore = score;
+            bestColumn = column.name;
+          }
+        });
+
+        mapping[semantic.key] = bestScore > 0 ? bestColumn : "";
+      });
+      return mapping;
+    }
+
+    // ---------- Normalização dos registos ----------
+    function parseRoomCount(value) {
+      if (value === null || value === undefined || value === "") {
+        return null;
+      }
+      if (typeof value === "number") {
+        return Number.isFinite(value) ? value : null;
+      }
+      const text = valueToText(value).toLowerCase();
+      if (!text) {
+        return null;
+      }
+      const matches = [
+        text.match(/\bt\s*(\d+)\b/i),
+        text.match(/(\d+)\s*(?:quartos?|rooms?|dormit[oó]rios?)/i),
+        text.match(/(\d+)/)
+      ].filter(Boolean);
+      if (!matches.length) {
+        return null;
+      }
+      return Number(matches[0][1]);
+    }
+
+    function parseBathroomCount(value) {
+      if (value === null || value === undefined || value === "") {
+        return null;
+      }
+      if (typeof value === "number") {
+        return Number.isFinite(value) ? value : null;
+      }
+      const text = valueToText(value).toLowerCase();
+      const match = text.match(/(\d+)\s*(?:casas?\s*de\s*banho|bathrooms?|wc|wcs?)/i) || text.match(/(\d+)/);
+      return match ? Number(match[1]) : null;
+    }
+
+    function dedupeImages(images) {
+      const seen = new Set();
+      const result = [];
+      images.forEach((item) => {
+        const url = valueToText(item).trim();
+        if (!url || !/^https?:\/\//i.test(url)) {
+          return;
+        }
+        if (!/\.(?:png|jpe?g|webp|gif)(?:\?|$)/i.test(url)) {
+          return;
+        }
+        const key = url
+          .replace(/\?.*$/, "")
+          .replace(/(?:_TOP|_DETAIL|_DETAIL-[A-Z-]+|_DETAIL_TOP-[A-Z-]+|\.webp|\.jpg|\.jpeg|\.png)/gi, "")
+          .toLowerCase();
+        if (seen.has(key)) {
+          return;
+        }
+        seen.add(key);
+        result.push(url);
+      });
+      return result;
+    }
+
+    function extractImages(value) {
+      if (Array.isArray(value)) {
+        return dedupeImages(value);
+      }
+      if (value && typeof value === "object") {
+        return dedupeImages(Object.values(value));
+      }
+      const text = valueToText(value);
+      if (!text) {
+        return [];
+      }
+      if ((text.startsWith("[") && text.endsWith("]")) || (text.startsWith("{") && text.endsWith("}"))) {
+        try {
+          const parsed = JSON.parse(text);
+          return extractImages(parsed);
+        } catch (_error) {
+          // segue para split textual
+        }
+      }
+      return dedupeImages(text.split(/[\n|;,]+/));
+    }
+
+    function normalizeRows(rawRows, schema, mapping) {
+      return rawRows.map((rawRow, index) => {
+        const rawValues = {};
+        schema.forEach((column) => {
+          const rawValue = rawRow[column.name];
+          if (column.type === "numeric") {
+            rawValues[column.name] = parseLocaleNumber(rawValue);
+          } else if (column.type === "date") {
+            rawValues[column.name] = parseDateSafe(rawValue);
+          } else {
+            rawValues[column.name] = valueToText(rawValue);
+          }
+        });
+
+        const semantics = {};
+        SEMANTIC_FIELDS.forEach((semantic) => {
+          const mappedColumn = mapping[semantic.key];
+          const mappedValue = mappedColumn ? rawRow[mappedColumn] : undefined;
+          switch (semantic.key) {
+            case "price":
+            case "area":
+            case "pricePerM2":
+              semantics[semantic.key] = parseLocaleNumber(mappedValue);
+              break;
+            case "bedrooms":
+              semantics[semantic.key] = parseRoomCount(mappedValue);
+              break;
+            case "bathrooms":
+              semantics[semantic.key] = parseBathroomCount(mappedValue);
+              break;
+            case "date":
+              semantics[semantic.key] = parseDateSafe(mappedValue);
+              break;
+            case "images":
+              semantics[semantic.key] = extractImages(mappedValue);
+              break;
+            default:
+              semantics[semantic.key] = valueToText(mappedValue);
+          }
+        });
+
+        if ((semantics.pricePerM2 === null || semantics.pricePerM2 === undefined) && semantics.price && semantics.area) {
+          const derived = semantics.area > 0 ? semantics.price / semantics.area : null;
+          semantics.pricePerM2 = Number.isFinite(derived) ? derived : null;
+        }
+
+        if (!semantics.listingId) {
+          semantics.listingId = rawRow.id ? String(rawRow.id) : rawRow.listing_id ? String(rawRow.listing_id) : `row-${index + 1}`;
+        }
+
+        if (!semantics.title) {
+          semantics.title = valueToText(rawRow.title || rawRow.name || rawRow.headline || rawRow.listing_id) || `Registo ${index + 1}`;
+        }
+
+        const displayLocation = semantics.location || valueToText(rawRow.address || rawRow.city || rawRow.location);
+        const displayType = semantics.propertyType || valueToText(rawRow.type || rawRow.category || rawRow.property_type);
+        const searchText = [
+          semantics.title,
+          semantics.description,
+          semantics.listingId,
+          displayLocation,
+          displayType,
+          semantics.listingUrl,
+          ...schema
+            .filter((column) => column.type === "text" || column.type === "categorical")
+            .map((column) => valueToText(rawRow[column.name]))
+        ]
+          .filter(Boolean)
+          .join(" | ")
+          .toLowerCase();
+
+        return {
+          index,
+          id: semantics.listingId || `row-${index + 1}`,
+          raw: rawRow,
+          rawValues,
+          semantics,
+          searchText
+        };
+      });
+    }
+
+    function buildFieldCatalog(rows, schema, mapping) {
+      const usedColumns = new Set(Object.values(mapping).filter(Boolean));
+      const descriptors = [];
+
+      const semanticDefinitions = {
+        price: { label: "Preço", type: "numeric", format: "currency" },
+        area: { label: "Área", type: "numeric", format: "area" },
+        bedrooms: { label: "Quartos", type: "numeric", format: "number" },
+        bathrooms: { label: "Casas de banho", type: "numeric", format: "number" },
+        location: { label: "Localização", type: "categorical", format: "text" },
+        propertyType: { label: "Tipo de imóvel", type: "categorical", format: "text" },
+        pricePerM2: { label: "Preço por m²", type: "numeric", format: "currency" },
+        date: { label: "Data", type: "date", format: "date" }
+      };
+
+      Object.entries(semanticDefinitions).forEach(([key, definition]) => {
+        const hasValues = rows.some((row) => {
+          const value = row.semantics[key];
+          return definition.type === "date"
+            ? value instanceof Date && !Number.isNaN(value.getTime())
+            : value !== null && value !== undefined && value !== "";
+        });
+        if (!hasValues) {
+          return;
+        }
+        descriptors.push({
+          id: `semantic:${key}`,
+          label: definition.label,
+          type: definition.type,
+          format: definition.format,
+          getValue: (row) => row.semantics[key],
+          semanticKey: key
+        });
+      });
+
+      schema.forEach((column) => {
+        if (usedColumns.has(column.name)) {
+          return;
+        }
+        if (!column.filterable && column.type === "text") {
+          return;
+        }
+        descriptors.push({
+          id: `raw:${column.name}`,
+          label: column.name,
+          type: column.type,
+          format: inferFormatFromName(column.name, column.type),
+          getValue: (row) => row.rawValues[column.name],
+          rawColumn: column.name
+        });
+      });
+
+      return descriptors;
+    }
+
+    function inferFormatFromName(name, type) {
+      const normalized = slugify(name);
+      if (type === "date") {
+        return "date";
+      }
+      if (/(price|preco|valor|eur|rent|cost)/.test(normalized)) {
+        return "currency";
+      }
+      if (/(area|sqm|m2|surface|size)/.test(normalized)) {
+        return "area";
+      }
+      return "number";
+    }
+
+    function getFieldById(fieldId) {
+      return state.fieldCatalog.find((field) => field.id === fieldId) || null;
+    }
+
+    function getFieldValue(row, fieldIdOrDescriptor) {
+      const descriptor = typeof fieldIdOrDescriptor === "string" ? getFieldById(fieldIdOrDescriptor) : fieldIdOrDescriptor;
+      return descriptor ? descriptor.getValue(row) : null;
+    }
+
+    // ---------- Filtros ----------
+    function buildFilterDefinitions(rows, fieldCatalog) {
+      return fieldCatalog
+        .filter((field) => ["numeric", "categorical", "date"].includes(field.type))
+        .map((field) => {
+          const values = rows.map((row) => getFieldValue(row, field)).filter((value) => {
+            if (field.type === "date") {
+              return value instanceof Date && !Number.isNaN(value.getTime());
+            }
+            return value !== null && value !== undefined && value !== "";
+          });
+
+          if (!values.length) {
+            return null;
+          }
+
+          if (field.type === "numeric") {
+            const min = d3.min(values);
+            const max = d3.max(values);
+            return {
+              id: field.id,
+              type: "numeric",
+              label: field.label,
+              format: field.format,
+              min,
+              max,
+              defaultValue: [min, max]
+            };
+          }
+
+          if (field.type === "date") {
+            const minDate = d3.min(values);
+            const maxDate = d3.max(values);
+            return {
+              id: field.id,
+              type: "date",
+              label: field.label,
+              min: minDate,
+              max: maxDate,
+              defaultValue: [toDateInputValue(minDate), toDateInputValue(maxDate)]
+            };
+          }
+
+          const counts = d3.rollups(
+            values.map((value) => valueToText(value)).filter(Boolean),
+            (bucket) => bucket.length,
+            (value) => value
+          ).sort((a, b) => d3.descending(a[1], b[1]) || d3.ascending(a[0], b[0]));
+
+          if (counts.length > MAX_CATEGORY_OPTIONS) {
+            return null;
+          }
+
+          return {
+            id: field.id,
+            type: "categorical",
+            label: field.label,
+            options: counts.map(([value, count]) => ({ value, count })),
+            defaultValue: []
+          };
+        })
+        .filter(Boolean);
+    }
+
+    function toDateInputValue(value) {
+      if (!(value instanceof Date) || Number.isNaN(value.getTime())) {
+        return "";
+      }
+      const year = value.getFullYear();
+      const month = `${value.getMonth() + 1}`.padStart(2, "0");
+      const day = `${value.getDate()}`.padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    }
+
+    function reconcileFilters(previousFilters, definitions) {
+      const next = {
+        searchText: previousFilters?.searchText || "",
+        values: {}
+      };
+
+      definitions.forEach((definition) => {
+        const previousValue = previousFilters?.values?.[definition.id];
+        if (!previousValue) {
+          next.values[definition.id] = cloneDefaultValue(definition.defaultValue);
+          return;
+        }
+
+        if (definition.type === "numeric") {
+          next.values[definition.id] = [
+            clamp(Number(previousValue[0]), definition.min, definition.max),
+            clamp(Number(previousValue[1]), definition.min, definition.max)
+          ];
+          if (next.values[definition.id][0] > next.values[definition.id][1]) {
+            next.values[definition.id] = [...definition.defaultValue];
+          }
+          return;
+        }
+
+        if (definition.type === "date") {
+          const [start, end] = Array.isArray(previousValue) ? previousValue : definition.defaultValue;
+          next.values[definition.id] = [
+            start || definition.defaultValue[0],
+            end || definition.defaultValue[1]
+          ];
+          return;
+        }
+
+        next.values[definition.id] = Array.isArray(previousValue)
+          ? previousValue.filter((option) => definition.options.some((item) => item.value === option))
+          : [];
+      });
+
+      return next;
+    }
+
+    function applyFilters(rows, definitions, filters) {
+      const searchText = (filters.searchText || "").trim().toLowerCase();
+
+      return rows.filter((row) => {
+        if (searchText && !row.searchText.includes(searchText)) {
+          return false;
+        }
+
+        return definitions.every((definition) => {
+          const currentValue = filters.values[definition.id];
+          const fieldValue = getFieldValue(row, definition.id);
+
+          if (definition.type === "numeric") {
+            const [min, max] = currentValue || definition.defaultValue;
+            const defaultValue = definition.defaultValue;
+            const active = min > defaultValue[0] || max < defaultValue[1];
+            if (!active) {
+              return true;
+            }
+            if (fieldValue === null || fieldValue === undefined || Number.isNaN(fieldValue)) {
+              return false;
+            }
+            return fieldValue >= min && fieldValue <= max;
+          }
+
+          if (definition.type === "date") {
+            const [start, end] = currentValue || definition.defaultValue;
+            const [defaultStart, defaultEnd] = definition.defaultValue;
+            const active = start !== defaultStart || end !== defaultEnd;
+            if (!active) {
+              return true;
+            }
+            if (!(fieldValue instanceof Date) || Number.isNaN(fieldValue.getTime())) {
+              return false;
+            }
+            const iso = toDateInputValue(fieldValue);
+            return (!start || iso >= start) && (!end || iso <= end);
+          }
+
+          const selected = Array.isArray(currentValue) ? currentValue : [];
+          if (!selected.length) {
+            return true;
+          }
+          return selected.includes(valueToText(fieldValue));
+        });
+      }).sort(sortRowsForDisplay);
+    }
+
+    function sortRowsForDisplay(a, b) {
+      const dateA = a.semantics.date instanceof Date ? a.semantics.date.getTime() : null;
+      const dateB = b.semantics.date instanceof Date ? b.semantics.date.getTime() : null;
+      if (dateA !== null && dateB !== null && dateA !== dateB) {
+        return dateB - dateA;
+      }
+      const priceA = typeof a.semantics.price === "number" ? a.semantics.price : null;
+      const priceB = typeof b.semantics.price === "number" ? b.semantics.price : null;
+      if (priceA !== null && priceB !== null && priceA !== priceB) {
+        return priceB - priceA;
+      }
+      return a.index - b.index;
+    }
+
+    function resetAllFilters() {
+      state.filters = reconcileFilters(null, state.filterDefinitions);
+      state.selectedListingId = null;
+      state.detailImageIndex = 0;
+      refs.globalSearch.value = "";
+      recomputeFilteredRows();
+      renderAll();
+    }
+
+    function recomputeFilteredRows() {
+      state.filteredRows = applyFilters(state.normalizedRows, state.filterDefinitions, state.filters);
+      if (state.selectedListingId && !state.filteredRows.some((row) => row.id === state.selectedListingId)) {
+        state.selectedListingId = null;
+        state.detailImageIndex = 0;
+      }
+    }
+
+    // ---------- Métricas e comparação ----------
+    function getNumericFields() {
+      return state.fieldCatalog.filter((field) => field.type === "numeric");
+    }
+
+    function getCategoricalFields() {
+      return state.fieldCatalog.filter((field) => field.type === "categorical");
+    }
+
+    function getPriorityNumericFields() {
+      const numerics = getNumericFields();
+      const ordered = [];
+      FIELD_PRIORITY.forEach((semanticKey) => {
+        const field = numerics.find((item) => item.semanticKey === semanticKey);
+        if (field) {
+          ordered.push(field);
+        }
+      });
+      numerics.forEach((field) => {
+        if (!ordered.includes(field)) {
+          ordered.push(field);
+        }
+      });
+      return ordered;
+    }
+
+    function computeSummaryMetrics(rows) {
+      const metrics = [
+        {
+          label: "Anúncios filtrados",
+          value: formatNumber(rows.length),
+          help: "Número de registos visíveis neste momento."
+        }
+      ];
+
+      getPriorityNumericFields()
+        .slice(0, 3)
+        .forEach((field) => {
+          const values = rows
+            .map((row) => getFieldValue(row, field))
+            .filter((value) => typeof value === "number" && Number.isFinite(value));
+
+          if (!values.length) {
+            return;
+          }
+
+          metrics.push({
+            label: `Média · ${field.label}`,
+            value: formatFieldValue(field, d3.mean(values)),
+            help: "Média do subconjunto filtrado."
+          });
+
+          metrics.push({
+            label: `Mediana · ${field.label}`,
+            value: formatFieldValue(field, d3.median(values)),
+            help: "Mediana do subconjunto filtrado."
+          });
+        });
+
+      return metrics.slice(0, 6);
+    }
+
+    function percentileOfValue(values, value) {
+      if (!values.length || value === null || value === undefined || Number.isNaN(value)) {
+        return null;
+      }
+      const ordered = values.filter((item) => Number.isFinite(item));
+      if (!ordered.length) {
+        return null;
+      }
+      const belowOrEqual = ordered.filter((item) => item <= value).length;
+      return (belowOrEqual / ordered.length) * 100;
+    }
+
+    function zScoreOfValue(values, value) {
+      if (!values.length || value === null || value === undefined || Number.isNaN(value)) {
+        return null;
+      }
+      const usable = values.filter((item) => Number.isFinite(item));
+      if (usable.length < 2) {
+        return null;
+      }
+      const mean = d3.mean(usable);
+      const variance = d3.mean(usable.map((item) => (item - mean) ** 2));
+      const deviation = Math.sqrt(variance);
+      if (!deviation) {
+        return null;
+      }
+      return (value - mean) / deviation;
+    }
+
+    function computeListingComparison(selectedRow, filteredRows) {
+      if (!selectedRow) {
+        return [];
+      }
+
+      const referenceRows = filteredRows.filter((row) => row.id !== selectedRow.id);
+      const comparisonFields = getPriorityNumericFields().slice(0, 4);
+
+      return comparisonFields.map((field) => {
+        const selectedValue = getFieldValue(selectedRow, field);
+        const referenceValues = referenceRows
+          .map((row) => getFieldValue(row, field))
+          .filter((value) => typeof value === "number" && Number.isFinite(value));
+        const mean = referenceValues.length ? d3.mean(referenceValues) : null;
+        const median = referenceValues.length ? d3.median(referenceValues) : null;
+
+        return {
+          field,
+          selectedValue,
+          percentile: percentileOfValue(referenceValues, selectedValue),
+          deltaMean: mean === null || selectedValue === null ? null : selectedValue - mean,
+          deltaMedian: median === null || selectedValue === null ? null : selectedValue - median,
+          zScore: zScoreOfValue(referenceValues, selectedValue),
+          referenceValues
+        };
+      }).filter((item) => item.selectedValue !== null && item.selectedValue !== undefined);
+    }
+
+    // ---------- Seletor e layout dos gráficos ----------
+    function chooseDefaultChartConfig() {
+      const numericFields = getNumericFields();
+      const categoricalFields = getCategoricalFields();
+
+      const priceField = numericFields.find((field) => field.semanticKey === "price");
+      const areaField = numericFields.find((field) => field.semanticKey === "area");
+      const pricePerM2Field = numericFields.find((field) => field.semanticKey === "pricePerM2");
+      const locationField = categoricalFields.find((field) => field.semanticKey === "location");
+      const typeField = categoricalFields.find((field) => field.semanticKey === "propertyType");
+
+      state.chartConfig.histogramField = priceField?.id || numericFields[0]?.id || "";
+      state.chartConfig.categoryField = locationField?.id || typeField?.id || categoricalFields[0]?.id || "";
+      state.chartConfig.scatterX = areaField?.id || numericFields[0]?.id || "";
+      state.chartConfig.scatterY = priceField?.id || pricePerM2Field?.id || numericFields[1]?.id || numericFields[0]?.id || "";
+
+      if (state.chartConfig.scatterX && state.chartConfig.scatterX === state.chartConfig.scatterY && numericFields.length > 1) {
+        const alternative = numericFields.find((field) => field.id !== state.chartConfig.scatterX);
+        state.chartConfig.scatterY = alternative?.id || state.chartConfig.scatterY;
+      }
+    }
+
+    function reconcileChartConfig() {
+      const numericIds = new Set(getNumericFields().map((field) => field.id));
+      const categoricalIds = new Set(getCategoricalFields().map((field) => field.id));
+
+      if (!numericIds.has(state.chartConfig.histogramField)) {
+        state.chartConfig.histogramField = "";
+      }
+      if (!categoricalIds.has(state.chartConfig.categoryField)) {
+        state.chartConfig.categoryField = "";
+      }
+      if (!numericIds.has(state.chartConfig.scatterX)) {
+        state.chartConfig.scatterX = "";
+      }
+      if (!numericIds.has(state.chartConfig.scatterY)) {
+        state.chartConfig.scatterY = "";
+      }
+
+      if (!state.chartConfig.histogramField || !state.chartConfig.categoryField || !state.chartConfig.scatterX || !state.chartConfig.scatterY) {
+        chooseDefaultChartConfig();
+      }
+    }
+
+    // ---------- Render base ----------
+    function renderAll() {
+      renderHero();
+      renderDatasetStats();
+      renderMappingPanel();
+      renderFilterSidebar();
+      renderMetrics();
+      renderChartSelectors();
+      renderCharts();
+      renderListingExplorer();
+      renderDetailPanel();
+    }
+
+    function renderHero() {
+      const schema = state.schema;
+      const mappedCount = Object.values(state.mapping).filter(Boolean).length;
+      const pills = [];
+
+      if (state.fileName) {
+        pills.push(`<span class="pill">Ficheiro: ${escapeHtml(state.fileName)}</span>`);
+      }
+      if (state.rawRows.length) {
+        pills.push(`<span class="pill">${formatNumber(state.rawRows.length)} linhas</span>`);
+      }
+      if (schema.length) {
+        pills.push(`<span class="pill">${formatNumber(schema.length)} colunas</span>`);
+      }
+      if (mappedCount) {
+        pills.push(`<span class="pill">${formatNumber(mappedCount)} campos mapeados</span>`);
+      }
+      refs.heroPills.innerHTML = pills.join("");
+    }
+
+    function renderDatasetStats() {
+      const numericCount = state.schema.filter((column) => column.type === "numeric").length;
+      const dateCount = state.schema.filter((column) => column.type === "date").length;
+      const categoricalCount = state.schema.filter((column) => column.type === "categorical").length;
+      const textCount = state.schema.filter((column) => column.type === "text").length;
+
+      refs.datasetStatsGrid.innerHTML = `
+        <div class="dataset-stat">
+          <div class="dataset-stat-label">Linhas</div>
+          <div class="dataset-stat-value">${formatNumber(state.rawRows.length)}</div>
+          <div class="kpi-help">Registos carregados localmente.</div>
+        </div>
+        <div class="dataset-stat">
+          <div class="dataset-stat-label">Colunas</div>
+          <div class="dataset-stat-value">${formatNumber(state.schema.length)}</div>
+          <div class="kpi-help">União de todas as colunas encontradas.</div>
+        </div>
+        <div class="dataset-stat">
+          <div class="dataset-stat-label">Tipos</div>
+          <div class="dataset-stat-value">${state.schema.length ? `${numericCount}N · ${categoricalCount}C · ${dateCount}D · ${textCount}T` : "—"}</div>
+          <div class="kpi-help">N numérico, C categórico, D data, T texto.</div>
+        </div>
+      `;
+    }
+
+    function renderMappingPanel() {
+      if (!state.schema.length) {
+        refs.mappingPanel.classList.add("hidden");
+        refs.mappingGrid.innerHTML = "";
+        refs.mappingSummary.innerHTML = "";
+        return;
+      }
+
+      refs.mappingPanel.classList.remove("hidden");
+
+      const optionMarkup = state.schema
+        .map((column) => `<option value="${escapeHtml(column.name)}">${escapeHtml(column.name)} · ${escapeHtml(column.type)}</option>`)
+        .join("");
+
+      refs.mappingGrid.innerHTML = SEMANTIC_FIELDS.map((field) => {
+        const mappedColumn = state.mapping[field.key] || "";
+        const derivedBadge = field.key === "pricePerM2" && !mappedColumn && state.mapping.price && state.mapping.area
+          ? `<span class="tag">Derivado automaticamente</span>`
+          : "";
+        return `
+          <div class="mapping-row">
+            <label for="mapping-${escapeHtml(field.key)}">${escapeHtml(field.label)}</label>
+            <p class="mapping-help">${escapeHtml(field.help)}</p>
+            <select id="mapping-${escapeHtml(field.key)}" data-mapping-key="${escapeHtml(field.key)}">
+              <option value="">Não mapear</option>
+              ${optionMarkup}
+            </select>
+            ${derivedBadge}
+          </div>
+        `;
+      }).join("");
+
+      SEMANTIC_FIELDS.forEach((field) => {
+        const select = document.getElementById(`mapping-${field.key}`);
+        if (select) {
+          select.value = state.mapping[field.key] || "";
+        }
+      });
+
+      const summaryPills = SEMANTIC_FIELDS
+        .map((field) => {
+          const mapped = state.mapping[field.key];
+          if (mapped) {
+            return `<span class="pill">${escapeHtml(field.label)} → ${escapeHtml(mapped)}</span>`;
+          }
+          if (field.key === "pricePerM2" && state.mapping.price && state.mapping.area) {
+            return `<span class="pill">Preço por m² → derivado</span>`;
+          }
+          return "";
+        })
+        .filter(Boolean)
+        .join("");
+
+      refs.mappingSummary.innerHTML = summaryPills || `<span class="pill">Sem mapeamentos ativos</span>`;
+    }
+
+    function renderFilterSidebar() {
+      refs.globalSearch.value = state.filters.searchText || "";
+
+      if (!state.filterDefinitions.length) {
+        refs.filterGroups.innerHTML = `<div class="empty-state">Carrega e mapeia um dataset para gerar filtros.</div>`;
+        return;
+      }
+
+      refs.filterGroups.innerHTML = state.filterDefinitions.map((definition) => {
+        const currentValue = state.filters.values[definition.id] || definition.defaultValue;
+        if (definition.type === "numeric") {
+          const [minValue, maxValue] = currentValue;
+          const totalRange = definition.max - definition.min || 1;
+          const left = ((minValue - definition.min) / totalRange) * 100;
+          const right = ((maxValue - definition.min) / totalRange) * 100;
+          return `
+            <div class="filter-card">
+              <h3>${escapeHtml(definition.label)}</h3>
+              <p class="field-meta">Filtro numérico automático.</p>
+              <div class="range-grid" data-filter-id="${escapeHtml(definition.id)}">
+                <div class="range-inputs">
+                  <input class="range-number" data-role="min-input" type="number" step="any" value="${escapeHtml(minValue)}">
+                  <input class="range-number" data-role="max-input" type="number" step="any" value="${escapeHtml(maxValue)}">
+                </div>
+                <div class="dual-range" data-filter-id="${escapeHtml(definition.id)}">
+                  <div class="dual-range-track">
+                    <div class="dual-range-fill" style="left:${left}%; width:${Math.max(0, right - left)}%;"></div>
+                  </div>
+                  <input type="range" data-role="min-slider" min="${escapeHtml(definition.min)}" max="${escapeHtml(definition.max)}" step="${(definition.max - definition.min) / 200 || 1}" value="${escapeHtml(minValue)}">
+                  <input type="range" data-role="max-slider" min="${escapeHtml(definition.min)}" max="${escapeHtml(definition.max)}" step="${(definition.max - definition.min) / 200 || 1}" value="${escapeHtml(maxValue)}">
+                </div>
+              </div>
+            </div>
+          `;
+        }
+
+        if (definition.type === "date") {
+          const [start, end] = currentValue;
+          return `
+            <div class="filter-card" data-filter-id="${escapeHtml(definition.id)}">
+              <h3>${escapeHtml(definition.label)}</h3>
+              <p class="field-meta">Filtro por intervalo de datas.</p>
+              <div class="range-inputs">
+                <input class="date-input" data-role="date-start" type="date" value="${escapeHtml(start)}">
+                <input class="date-input" data-role="date-end" type="date" value="${escapeHtml(end)}">
+              </div>
+            </div>
+          `;
+        }
+
+        const selectedValues = Array.isArray(currentValue) ? currentValue : [];
+        const summary = selectedValues.length ? `${selectedValues.length} selecionados` : "Todos";
+        return `
+          <div class="filter-card">
+            <h3>${escapeHtml(definition.label)}</h3>
+            <p class="field-meta">Filtro categórico com pesquisa.</p>
+            <div class="multi-select" data-filter-id="${escapeHtml(definition.id)}">
+              <details>
+                <summary>
+                  <span>${escapeHtml(summary)}</span>
+                  <span>Mostrar</span>
+                </summary>
+                <div class="multi-select-content">
+                  <input class="multi-select-search" data-role="option-search" type="search" placeholder="Pesquisar opção">
+                  <div class="multi-options">
+                    ${definition.options.map((option) => `
+                      <label class="option-item">
+                        <input type="checkbox" data-role="option-checkbox" value="${escapeHtml(option.value)}" ${selectedValues.includes(option.value) ? "checked" : ""}>
+                        <span>${escapeHtml(option.value)} <small>(${formatNumber(option.count)})</small></span>
+                      </label>
+                    `).join("")}
+                  </div>
+                </div>
+              </details>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function renderMetrics() {
+      const metrics = computeSummaryMetrics(state.filteredRows);
+      refs.filteredCountBadge.textContent = `${formatNumber(state.filteredRows.length)} anúncios`;
+      refs.metricsGrid.innerHTML = metrics.map((metric) => `
+        <div class="metric-card">
+          <div class="metric-label">${escapeHtml(metric.label)}</div>
+          <div class="metric-value">${escapeHtml(metric.value)}</div>
+          <div class="kpi-help">${escapeHtml(metric.help)}</div>
+        </div>
+      `).join("");
+    }
+
+    function renderChartSelectors() {
+      const numericFields = getNumericFields();
+      const categoricalFields = getCategoricalFields();
+
+      populateSelect(refs.histFieldSelect, numericFields, state.chartConfig.histogramField);
+      populateSelect(refs.categoryFieldSelect, categoricalFields, state.chartConfig.categoryField);
+      populateSelect(refs.scatterXSelect, numericFields, state.chartConfig.scatterX);
+      populateSelect(refs.scatterYSelect, numericFields, state.chartConfig.scatterY);
+    }
+
+    function populateSelect(select, fields, selectedValue) {
+      if (!fields.length) {
+        select.innerHTML = `<option value="">Sem opções</option>`;
+        select.disabled = true;
+        return;
+      }
+      select.disabled = false;
+      select.innerHTML = fields.map((field) => `<option value="${escapeHtml(field.id)}">${escapeHtml(field.label)}</option>`).join("");
+      select.value = selectedValue || fields[0].id;
+    }
+
+    function renderCharts() {
+      renderHistogram();
+      renderBarChart();
+      renderScatter();
+    }
+
+    function clearChart(container, message) {
+      container.innerHTML = `<div class="chart-empty">${escapeHtml(message)}</div>`;
+    }
+
+    function getSelectedRow() {
+      return state.filteredRows.find((row) => row.id === state.selectedListingId) || null;
+    }
+
+    function createSvg(container, width, height, margin) {
+      container.innerHTML = "";
+      const svg = d3.select(container)
+        .append("svg")
+        .attr("viewBox", `0 0 ${width} ${height}`)
+        .attr("preserveAspectRatio", "xMidYMid meet");
+
+      return svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+    }
+
+    function renderHistogram() {
+      const field = getFieldById(state.chartConfig.histogramField);
+      if (!field || field.type !== "numeric") {
+        clearChart(refs.histChart, "Sem campo numérico disponível para o histograma.");
+        return;
+      }
+
+      const values = state.filteredRows
+        .map((row) => getFieldValue(row, field))
+        .filter((value) => typeof value === "number" && Number.isFinite(value));
+
+      if (!values.length) {
+        clearChart(refs.histChart, "Não há valores suficientes para mostrar a distribuição.");
+        return;
+      }
+
+      const selectedRow = getSelectedRow();
+      const selectedValue = selectedRow ? getFieldValue(selectedRow, field) : null;
+      const width = refs.histChart.clientWidth || 520;
+      const height = Math.max(320, refs.histChart.clientHeight || 340);
+      const margin = { top: 18, right: 18, bottom: 52, left: 56 };
+      const innerWidth = width - margin.left - margin.right;
+      const innerHeight = height - margin.top - margin.bottom;
+
+      const svg = createSvg(refs.histChart, width, height, margin);
+      const extent = d3.extent(values);
+      const xScale = d3.scaleLinear().domain(extent).nice().range([0, innerWidth]);
+      const bins = d3.bin().domain(xScale.domain()).thresholds(Math.min(24, Math.max(8, Math.round(Math.sqrt(values.length)))))(values);
+      const yScale = d3.scaleLinear().domain([0, d3.max(bins, (bin) => bin.length) || 1]).nice().range([innerHeight, 0]);
+
+      svg.append("g")
+        .selectAll("rect")
+        .data(bins)
+        .join("rect")
+        .attr("x", (bin) => xScale(bin.x0) + 1)
+        .attr("y", (bin) => yScale(bin.length))
+        .attr("width", (bin) => Math.max(0, xScale(bin.x1) - xScale(bin.x0) - 2))
+        .attr("height", (bin) => innerHeight - yScale(bin.length))
+        .attr("rx", 8)
+        .attr("fill", "#6aa6ae")
+        .on("mousemove", (event, bin) => {
+          showTooltip(
+            event,
+            `<strong>${escapeHtml(field.label)}</strong><br>${escapeHtml(formatFieldValue(field, bin.x0))} — ${escapeHtml(formatFieldValue(field, bin.x1))}<br>${escapeHtml(formatNumber(bin.length))} anúncios`
+          );
+        })
+        .on("mouseleave", hideTooltip);
+
+      if (typeof selectedValue === "number" && Number.isFinite(selectedValue)) {
+        svg.append("line")
+          .attr("x1", xScale(selectedValue))
+          .attr("x2", xScale(selectedValue))
+          .attr("y1", 0)
+          .attr("y2", innerHeight)
+          .attr("stroke", "#cb5b2b")
+          .attr("stroke-width", 3)
+          .attr("stroke-dasharray", "6 6");
+
+        svg.append("text")
+          .attr("x", Math.min(innerWidth - 10, xScale(selectedValue) + 10))
+          .attr("y", 12)
+          .attr("fill", "#cb5b2b")
+          .attr("font-weight", 800)
+          .attr("font-size", 12)
+          .text("Selecionado");
+      }
+
+      svg.append("g")
+        .attr("transform", `translate(0,${innerHeight})`)
+        .call(d3.axisBottom(xScale).ticks(6).tickFormat((tick) => formatAxisTick(field, tick)));
+
+      svg.append("g")
+        .call(d3.axisLeft(yScale).ticks(5).tickFormat((tick) => formatNumber(tick)));
+
+      svg.append("text")
+        .attr("x", innerWidth / 2)
+        .attr("y", innerHeight + 42)
+        .attr("text-anchor", "middle")
+        .attr("fill", "#66777d")
+        .attr("font-size", 13)
+        .text(field.label);
+    }
+
+    function renderBarChart() {
+      const field = getFieldById(state.chartConfig.categoryField);
+      if (!field || field.type !== "categorical") {
+        clearChart(refs.barChart, "Sem campo categórico disponível para o gráfico de barras.");
+        return;
+      }
+
+      const selectedRow = getSelectedRow();
+      const selectedValue = selectedRow ? valueToText(getFieldValue(selectedRow, field)) : "";
+      const counts = d3.rollups(
+        state.filteredRows
+          .map((row) => valueToText(getFieldValue(row, field)))
+          .filter(Boolean),
+        (bucket) => bucket.length,
+        (value) => value
+      ).sort((a, b) => d3.descending(a[1], b[1]) || d3.ascending(a[0], b[0]));
+
+      if (!counts.length) {
+        clearChart(refs.barChart, "Não há categorias suficientes para mostrar neste momento.");
+        return;
+      }
+
+      const trimmed = counts.slice(0, MAX_BAR_CATEGORIES);
+      if (selectedValue && !trimmed.some(([value]) => value === selectedValue)) {
+        const selectedCount = counts.find(([value]) => value === selectedValue);
+        if (selectedCount) {
+          trimmed.pop();
+          trimmed.push(selectedCount);
+        }
+      }
+
+      const width = refs.barChart.clientWidth || 520;
+      const height = Math.max(320, refs.barChart.clientHeight || 340);
+      const margin = { top: 18, right: 18, bottom: 56, left: 120 };
+      const innerWidth = width - margin.left - margin.right;
+      const innerHeight = height - margin.top - margin.bottom;
+
+      const svg = createSvg(refs.barChart, width, height, margin);
+      const yScale = d3.scaleBand().domain(trimmed.map(([value]) => value)).range([0, innerHeight]).padding(0.18);
+      const xScale = d3.scaleLinear().domain([0, d3.max(trimmed, (item) => item[1]) || 1]).nice().range([0, innerWidth]);
+
+      svg.append("g")
+        .selectAll("rect")
+        .data(trimmed)
+        .join("rect")
+        .attr("x", 0)
+        .attr("y", ([value]) => yScale(value))
+        .attr("width", ([, count]) => xScale(count))
+        .attr("height", yScale.bandwidth())
+        .attr("rx", 12)
+        .attr("fill", ([value]) => value === selectedValue ? "#cb5b2b" : "#0f6b72")
+        .on("mousemove", (event, [value, count]) => {
+          showTooltip(
+            event,
+            `<strong>${escapeHtml(value)}</strong><br>${escapeHtml(formatNumber(count))} anúncios`
+          );
+        })
+        .on("mouseleave", hideTooltip);
+
+      svg.append("g")
+        .call(d3.axisLeft(yScale).tickFormat((tick) => trimLabel(tick, 20)));
+
+      svg.append("g")
+        .attr("transform", `translate(0,${innerHeight})`)
+        .call(d3.axisBottom(xScale).ticks(5).tickFormat((tick) => formatNumber(tick)));
+
+      svg.append("text")
+        .attr("x", innerWidth / 2)
+        .attr("y", innerHeight + 44)
+        .attr("text-anchor", "middle")
+        .attr("fill", "#66777d")
+        .attr("font-size", 13)
+        .text(`Contagem por ${field.label}`);
+    }
+
+    function renderScatter() {
+      const xField = getFieldById(state.chartConfig.scatterX);
+      const yField = getFieldById(state.chartConfig.scatterY);
+      if (!xField || !yField || xField.type !== "numeric" || yField.type !== "numeric") {
+        clearChart(refs.scatterChart, "Sem dois campos numéricos compatíveis para o scatter.");
+        return;
+      }
+
+      const points = state.filteredRows
+        .map((row) => ({
+          row,
+          x: getFieldValue(row, xField),
+          y: getFieldValue(row, yField)
+        }))
+        .filter((point) => typeof point.x === "number" && Number.isFinite(point.x) && typeof point.y === "number" && Number.isFinite(point.y));
+
+      if (!points.length) {
+        clearChart(refs.scatterChart, "Não há pontos suficientes para a relação escolhida.");
+        return;
+      }
+
+      const selectedRow = getSelectedRow();
+      const width = refs.scatterChart.clientWidth || 520;
+      const height = Math.max(320, refs.scatterChart.clientHeight || 340);
+      const margin = { top: 18, right: 18, bottom: 56, left: 62 };
+      const innerWidth = width - margin.left - margin.right;
+      const innerHeight = height - margin.top - margin.bottom;
+      const svg = createSvg(refs.scatterChart, width, height, margin);
+
+      const xScale = d3.scaleLinear().domain(d3.extent(points, (point) => point.x)).nice().range([0, innerWidth]);
+      const yScale = d3.scaleLinear().domain(d3.extent(points, (point) => point.y)).nice().range([innerHeight, 0]);
+
+      if (points.length >= 2) {
+        const slope = linearRegressionSlope(points);
+        const intercept = linearRegressionIntercept(points, slope);
+        const xDomain = xScale.domain();
+        svg.append("line")
+          .attr("x1", xScale(xDomain[0]))
+          .attr("y1", yScale(slope * xDomain[0] + intercept))
+          .attr("x2", xScale(xDomain[1]))
+          .attr("y2", yScale(slope * xDomain[1] + intercept))
+          .attr("stroke", "#0f6b72")
+          .attr("stroke-width", 3)
+          .attr("stroke-linecap", "round")
+          .attr("opacity", 0.8);
+      }
+
+      svg.append("g")
+        .selectAll("circle")
+        .data(points)
+        .join("circle")
+        .attr("cx", (point) => xScale(point.x))
+        .attr("cy", (point) => yScale(point.y))
+        .attr("r", (point) => point.row.id === state.selectedListingId ? 8 : 5.5)
+        .attr("fill", (point) => point.row.id === state.selectedListingId ? "#cb5b2b" : "#6aa6ae")
+        .attr("stroke", "#ffffff")
+        .attr("stroke-width", (point) => point.row.id === state.selectedListingId ? 3 : 1.5)
+        .attr("opacity", (point) => point.row.id === state.selectedListingId ? 1 : 0.82)
+        .style("cursor", "pointer")
+        .on("click", (_event, point) => {
+          state.selectedListingId = point.row.id;
+          state.detailImageIndex = 0;
+          renderAll();
+        })
+        .on("mousemove", (event, point) => {
+          showTooltip(
+            event,
+            `<strong>${escapeHtml(point.row.semantics.title || point.row.id)}</strong><br>${escapeHtml(xField.label)}: ${escapeHtml(formatFieldValue(xField, point.x))}<br>${escapeHtml(yField.label)}: ${escapeHtml(formatFieldValue(yField, point.y))}`
+          );
+        })
+        .on("mouseleave", hideTooltip);
+
+      svg.append("g")
+        .attr("transform", `translate(0,${innerHeight})`)
+        .call(d3.axisBottom(xScale).ticks(6).tickFormat((tick) => formatAxisTick(xField, tick)));
+
+      svg.append("g")
+        .call(d3.axisLeft(yScale).ticks(6).tickFormat((tick) => formatAxisTick(yField, tick)));
+
+      svg.append("text")
+        .attr("x", innerWidth / 2)
+        .attr("y", innerHeight + 44)
+        .attr("text-anchor", "middle")
+        .attr("fill", "#66777d")
+        .attr("font-size", 13)
+        .text(xField.label);
+
+      svg.append("text")
+        .attr("transform", "rotate(-90)")
+        .attr("x", -innerHeight / 2)
+        .attr("y", -44)
+        .attr("text-anchor", "middle")
+        .attr("fill", "#66777d")
+        .attr("font-size", 13)
+        .text(yField.label);
+    }
+
+    function linearRegressionSlope(points) {
+      const meanX = d3.mean(points, (point) => point.x);
+      const meanY = d3.mean(points, (point) => point.y);
+      const numerator = d3.sum(points, (point) => (point.x - meanX) * (point.y - meanY));
+      const denominator = d3.sum(points, (point) => (point.x - meanX) ** 2);
+      return denominator ? numerator / denominator : 0;
+    }
+
+    function linearRegressionIntercept(points, slope) {
+      const meanX = d3.mean(points, (point) => point.x);
+      const meanY = d3.mean(points, (point) => point.y);
+      return meanY - slope * meanX;
+    }
+
+    function formatAxisTick(field, value) {
+      if (field.format === "currency") {
+        return value >= 1000 ? `${formatNumber(value / 1000, value >= 100000 ? 0 : 1)}k €` : formatCurrency(value, 0);
+      }
+      if (field.format === "area") {
+        return `${formatNumber(value, value % 1 ? 1 : 0)} m²`;
+      }
+      return formatNumber(value, value % 1 ? 1 : 0);
+    }
+
+    function trimLabel(label, length) {
+      return label.length > length ? `${label.slice(0, length - 1)}…` : label;
+    }
+
+    // ---------- Explorer ----------
+    function renderListingExplorer() {
+      if (!state.filteredRows.length) {
+        refs.listingSummary.textContent = "Sem resultados";
+        refs.listingList.innerHTML = `<div class="empty-state">Nenhum registo corresponde aos filtros atuais.</div>`;
+        return;
+      }
+
+      refs.listingSummary.textContent = `${formatNumber(state.filteredRows.length)} anúncios`;
+      refs.listingList.innerHTML = state.filteredRows.map((row) => {
+        const images = row.semantics.images || [];
+        const thumb = images[0]
+          ? `<img src="${escapeHtml(images[0])}" alt="${escapeHtml(row.semantics.title || row.id)}">`
+          : `<div>Sem imagem</div>`;
+        const fieldBits = [
+          row.semantics.propertyType || "",
+          row.semantics.location || "",
+          row.semantics.bedrooms !== null && row.semantics.bedrooms !== undefined ? `${formatNumber(row.semantics.bedrooms)} quartos` : "",
+          row.semantics.bathrooms !== null && row.semantics.bathrooms !== undefined ? `${formatNumber(row.semantics.bathrooms)} WC` : "",
+          row.semantics.area ? `${formatNumber(row.semantics.area, row.semantics.area % 1 ? 1 : 0)} m²` : ""
+        ].filter(Boolean);
+
+        return `
+          <article class="listing-card ${row.id === state.selectedListingId ? "is-selected" : ""}" data-listing-id="${escapeHtml(row.id)}">
+            <div class="listing-thumb">${thumb}</div>
+            <div class="listing-body">
+              <h3 class="listing-title">${escapeHtml(row.semantics.title || row.id)}</h3>
+              <p class="listing-line">${escapeHtml(row.semantics.location || "Sem localização")}</p>
+              <p class="listing-line">${escapeHtml(formatCurrency(row.semantics.price))}</p>
+              <p class="listing-line">${escapeHtml(fieldBits.join(" · ") || "Sem detalhe adicional")}</p>
+            </div>
+          </article>
+        `;
+      }).join("");
+    }
+
+    // ---------- Detalhe e comparação ----------
+    function renderDetailPanel() {
+      const selectedRow = getSelectedRow();
+      if (!selectedRow) {
+        refs.selectionBadge.textContent = "Sem seleção";
+        refs.detailPanel.className = "detail-empty";
+        refs.detailPanel.innerHTML = "Seleciona um anúncio na lista ou no scatter para abrir detalhe, imagens e comparação.";
+        return;
+      }
+
+      refs.selectionBadge.textContent = selectedRow.semantics.listingId || "Selecionado";
+      const comparison = computeListingComparison(selectedRow, state.filteredRows);
+      const images = selectedRow.semantics.images || [];
+      const heroIndex = clamp(state.detailImageIndex, 0, Math.max(images.length - 1, 0));
+      const heroImage = images[heroIndex];
+
+      refs.detailPanel.className = "detail-shell";
+      refs.detailPanel.innerHTML = `
+        <div class="detail-shell">
+          <div class="detail-hero">
+            <div class="image-stage">
+              <div class="hero-image">
+                ${heroImage ? `<img src="${escapeHtml(heroImage)}" alt="${escapeHtml(selectedRow.semantics.title || selectedRow.id)}">` : `<div class="empty-state">Sem imagem disponível</div>`}
+              </div>
+              <div class="thumb-strip">
+                ${images.slice(0, 12).map((image, index) => `
+                  <button class="thumb-button ${index === heroIndex ? "is-selected" : ""}" type="button" data-thumb-index="${index}">
+                    <img src="${escapeHtml(image)}" alt="Imagem ${index + 1}">
+                  </button>
+                `).join("") || `<div class="empty-text">Sem miniaturas para mostrar.</div>`}
+              </div>
+            </div>
+            <div class="detail-body">
+              <div class="panel-header-copy">
+                <h2 class="detail-title">${escapeHtml(selectedRow.semantics.title || selectedRow.id)}</h2>
+                <p class="helper">${escapeHtml(selectedRow.semantics.location || "Sem localização")}</p>
+                <div class="pill-row">
+                  <span class="pill">${escapeHtml(formatCurrency(selectedRow.semantics.price))}</span>
+                  <span class="pill">${escapeHtml(selectedRow.semantics.propertyType || "Tipo n/d")}</span>
+                  <span class="pill">${escapeHtml(selectedRow.semantics.area ? `${formatNumber(selectedRow.semantics.area, selectedRow.semantics.area % 1 ? 1 : 0)} m²` : "Área n/d")}</span>
+                  <span class="pill">${escapeHtml(selectedRow.semantics.bedrooms !== null && selectedRow.semantics.bedrooms !== undefined ? `${formatNumber(selectedRow.semantics.bedrooms)} quartos` : "Quartos n/d")}</span>
+                </div>
+              </div>
+
+              <div class="detail-metadata-grid">
+                ${renderMetadataCard("ID", selectedRow.semantics.listingId || selectedRow.id)}
+                ${renderMetadataCard("Data", formatDate(selectedRow.semantics.date))}
+                ${renderMetadataCard("Preço por m²", formatCurrency(selectedRow.semantics.pricePerM2))}
+                ${renderMetadataCard("Casas de banho", selectedRow.semantics.bathrooms !== null && selectedRow.semantics.bathrooms !== undefined ? formatNumber(selectedRow.semantics.bathrooms) : "—")}
+                ${renderMetadataCard("Tipo", selectedRow.semantics.propertyType || "—")}
+                ${renderMetadataCard("Localização", selectedRow.semantics.location || "—")}
+              </div>
+            </div>
+          </div>
+
+          <section class="detail-section">
+            <h3>Descrição</h3>
+            <p class="detail-description">${escapeHtml(selectedRow.semantics.description || "Sem descrição disponível.")}</p>
+            ${selectedRow.semantics.listingUrl ? `<a class="button button-secondary" href="${escapeHtml(selectedRow.semantics.listingUrl)}" target="_blank" rel="noreferrer">Abrir anúncio original</a>` : ""}
+          </section>
+
+          <section class="detail-section">
+            <h3>Características</h3>
+            <ul class="feature-list">
+              ${buildFeatureItems(selectedRow).map((item) => `<li>${escapeHtml(item)}</li>`).join("") || `<li>Sem características legíveis.</li>`}
+            </ul>
+          </section>
+
+          <section class="detail-section">
+            <h3>Comparação com o conjunto filtrado</h3>
+            <div class="comparison-grid">
+              ${comparison.map((item) => `
+                <article class="comparison-metric">
+                  <div class="comparison-label">${escapeHtml(item.field.label)}</div>
+                  <div class="comparison-value">${escapeHtml(formatFieldValue(item.field, item.selectedValue))}</div>
+                  <div class="field-meta">Percentil: ${escapeHtml(formatPercentile(item.percentile))}</div>
+                  <div class="field-meta">Dif. média: ${escapeHtml(formatDelta(item.deltaMean, item.field))}</div>
+                  <div class="field-meta">Dif. mediana: ${escapeHtml(formatDelta(item.deltaMedian, item.field))}</div>
+                  <div class="field-meta">Z-score: ${escapeHtml(formatZScore(item.zScore))}</div>
+                </article>
+              `).join("") || `<div class="empty-text">Sem métricas comparativas suficientes.</div>`}
+            </div>
+          </section>
+
+          <section class="detail-section">
+            <h3>Posição nas distribuições</h3>
+            <div id="comparison-chart-grid" class="comparison-chart-grid"></div>
+          </section>
+        </div>
+      `;
+
+      renderComparisonPlots(comparison);
+    }
+
+    function renderMetadataCard(label, value) {
+      return `
+        <article class="detail-metadata-card">
+          <div class="detail-metadata-label">${escapeHtml(label)}</div>
+          <div class="detail-metadata-value">${escapeHtml(value)}</div>
+        </article>
+      `;
+    }
+
+    function buildFeatureItems(row) {
+      const items = [];
+      if (row.semantics.pricePerM2) {
+        items.push(`Preço/m²: ${formatCurrency(row.semantics.pricePerM2)}`);
+      }
+      if (row.raw && Array.isArray(row.raw.feature_list)) {
+        row.raw.feature_list.slice(0, 12).forEach((item) => {
+          const text = valueToText(item);
+          if (text) {
+            items.push(text);
+          }
+        });
+      } else {
+        const rawTextFields = [
+          row.semantics.propertyType,
+          row.semantics.location,
+          row.raw?.feature_list,
+          row.raw?.features
+        ].map(valueToText).filter(Boolean);
+        rawTextFields.forEach((value) => items.push(value));
+      }
+      return Array.from(new Set(items)).slice(0, 12);
+    }
+
+    function renderComparisonPlots(comparison) {
+      const container = document.getElementById("comparison-chart-grid");
+      if (!container) {
+        return;
+      }
+
+      if (!comparison.length) {
+        container.innerHTML = `<div class="empty-state">Sem dados suficientes para boxplots comparativos.</div>`;
+        return;
+      }
+
+      container.innerHTML = comparison.map((item, index) => `
+        <div class="mini-plot">
+          <div class="panel-header">
+            <div class="panel-header-copy">
+              <strong>${escapeHtml(item.field.label)}</strong>
+              <span class="field-meta">O ponto laranja mostra o anúncio selecionado.</span>
+            </div>
+            <span class="badge">${escapeHtml(formatFieldValue(item.field, item.selectedValue))}</span>
+          </div>
+          <div id="mini-plot-${index}"></div>
+        </div>
+      `).join("");
+
+      comparison.forEach((item, index) => {
+        drawMiniBoxplot(document.getElementById(`mini-plot-${index}`), item);
+      });
+    }
+
+    function drawMiniBoxplot(container, item) {
+      const selectedValue = item.selectedValue;
+      const values = item.referenceValues.filter((value) => Number.isFinite(value));
+      if (!container) {
+        return;
+      }
+
+      if (values.length < 3 || selectedValue === null || selectedValue === undefined) {
+        container.innerHTML = `<div class="empty-text">Conjunto de referência pequeno demais para um boxplot fiável.</div>`;
+        return;
+      }
+
+      container.innerHTML = "";
+      const width = container.clientWidth || 460;
+      const height = 72;
+      const margin = { top: 16, right: 16, bottom: 18, left: 16 };
+      const innerWidth = width - margin.left - margin.right;
+      const innerHeight = height - margin.top - margin.bottom;
+
+      const svg = d3.select(container)
+        .append("svg")
+        .attr("viewBox", `0 0 ${width} ${height}`)
+        .attr("preserveAspectRatio", "xMidYMid meet");
+
+      const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+      const sorted = [...values].sort(d3.ascending);
+      const q1 = d3.quantileSorted(sorted, 0.25);
+      const median = d3.quantileSorted(sorted, 0.5);
+      const q3 = d3.quantileSorted(sorted, 0.75);
+      const min = sorted[0];
+      const max = sorted[sorted.length - 1];
+      const xScale = d3.scaleLinear().domain([Math.min(min, selectedValue), Math.max(max, selectedValue)]).nice().range([0, innerWidth]);
+      const centerY = innerHeight / 2;
+
+      g.append("line")
+        .attr("x1", xScale(min))
+        .attr("x2", xScale(max))
+        .attr("y1", centerY)
+        .attr("y2", centerY)
+        .attr("stroke", "#9cb4b8")
+        .attr("stroke-width", 4)
+        .attr("stroke-linecap", "round");
+
+      g.append("rect")
+        .attr("x", xScale(q1))
+        .attr("y", centerY - 11)
+        .attr("width", Math.max(4, xScale(q3) - xScale(q1)))
+        .attr("height", 22)
+        .attr("rx", 11)
+        .attr("fill", "#cfe7e8")
+        .attr("stroke", "#0f6b72");
+
+      g.append("line")
+        .attr("x1", xScale(median))
+        .attr("x2", xScale(median))
+        .attr("y1", centerY - 14)
+        .attr("y2", centerY + 14)
+        .attr("stroke", "#0f6b72")
+        .attr("stroke-width", 3);
+
+      g.append("circle")
+        .attr("cx", xScale(selectedValue))
+        .attr("cy", centerY)
+        .attr("r", 7)
+        .attr("fill", "#cb5b2b")
+        .attr("stroke", "#ffffff")
+        .attr("stroke-width", 3);
+
+      g.append("g")
+        .attr("transform", `translate(0,${innerHeight})`)
+        .call(d3.axisBottom(xScale).ticks(4).tickFormat((tick) => formatAxisTick(item.field, tick)));
+    }
+
+    // ---------- Eventos ----------
+    async function handleFileUpload(event) {
+      const file = event.target.files?.[0];
+      if (!file) {
+        return;
+      }
+
+      refs.datasetStatus.textContent = `A carregar ${file.name}...`;
+      try {
+        const rows = await loadDataset(file);
+        if (!rows.length) {
+          throw new Error("O ficheiro não tem registos utilizáveis.");
+        }
+
+        state.fileName = file.name;
+        state.rawRows = rows;
+        state.schema = detectSchema(rows);
+        state.mapping = suggestMappings(state.schema);
+        rebuildAnalyticsState();
+        refs.datasetStatus.textContent = `${file.name} carregado com ${formatNumber(rows.length)} registos.`;
+      } catch (error) {
+        console.error(error);
+        refs.datasetStatus.textContent = `Não foi possível ler o ficheiro: ${error.message}`;
+        clearDashboard();
+      } finally {
+        refs.fileInput.value = "";
+      }
+    }
+
+    async function loadDataset(file) {
+      const text = await file.text();
+      const extension = file.name.split(".").pop().toLowerCase();
+      let parsedRows = [];
+
+      if (extension === "csv") {
+        parsedRows = d3.csvParse(text);
+      } else if (extension === "jsonl") {
+        parsedRows = text
+          .split(/\r?\n/)
+          .map((line) => line.trim())
+          .filter(Boolean)
+          .map((line) => JSON.parse(line));
+      } else if (extension === "json") {
+        const parsed = JSON.parse(text);
+        parsedRows = extractRowsFromJson(parsed);
+      } else {
+        throw new Error("Formato não suportado. Usa CSV, JSON ou JSONL.");
+      }
+
+      return parsedRows
+        .filter((row) => row !== null && row !== undefined)
+        .map((row) => {
+          if (row && typeof row === "object" && !Array.isArray(row)) {
+            return row;
+          }
+          return { value: row };
+        });
+    }
+
+    function extractRowsFromJson(parsed) {
+      if (Array.isArray(parsed)) {
+        return parsed;
+      }
+      if (parsed && typeof parsed === "object") {
+        const candidateKey = Object.keys(parsed).find((key) => Array.isArray(parsed[key]));
+        if (candidateKey) {
+          return parsed[candidateKey];
+        }
+        return [parsed];
+      }
+      return [];
+    }
+
+    function rebuildAnalyticsState() {
+      state.normalizedRows = normalizeRows(state.rawRows, state.schema, state.mapping);
+      state.fieldCatalog = buildFieldCatalog(state.normalizedRows, state.schema, state.mapping);
+      state.filterDefinitions = buildFilterDefinitions(state.normalizedRows, state.fieldCatalog);
+      state.filters = reconcileFilters(state.filters, state.filterDefinitions);
+      reconcileChartConfig();
+      recomputeFilteredRows();
+      renderAll();
+    }
+
+    function clearDashboard() {
+      state.fileName = "";
+      state.rawRows = [];
+      state.schema = [];
+      state.mapping = {};
+      state.normalizedRows = [];
+      state.fieldCatalog = [];
+      state.filterDefinitions = [];
+      state.filters = { searchText: "", values: {} };
+      state.filteredRows = [];
+      state.selectedListingId = null;
+      state.detailImageIndex = 0;
+      state.chartConfig = { histogramField: "", categoryField: "", scatterX: "", scatterY: "" };
+      renderAll();
+    }
+
+    function syncNumericFilter(filterId, role, value) {
+      const definition = state.filterDefinitions.find((item) => item.id === filterId);
+      if (!definition) {
+        return;
+      }
+      const current = [...(state.filters.values[filterId] || definition.defaultValue)];
+      const parsed = Number(value);
+      if (!Number.isFinite(parsed)) {
+        return;
+      }
+      if (role === "min") {
+        current[0] = clamp(parsed, definition.min, current[1]);
+      } else {
+        current[1] = clamp(parsed, current[0], definition.max);
+      }
+      state.filters.values[filterId] = current;
+      recomputeFilteredRows();
+      renderAll();
+    }
+
+    function syncDateFilter(filterId, role, value) {
+      const definition = state.filterDefinitions.find((item) => item.id === filterId);
+      if (!definition) {
+        return;
+      }
+      const current = [...(state.filters.values[filterId] || definition.defaultValue)];
+      if (role === "start") {
+        current[0] = value || definition.defaultValue[0];
+      } else {
+        current[1] = value || definition.defaultValue[1];
+      }
+      if (current[0] && current[1] && current[0] > current[1]) {
+        if (role === "start") {
+          current[1] = current[0];
+        } else {
+          current[0] = current[1];
+        }
+      }
+      state.filters.values[filterId] = current;
+      recomputeFilteredRows();
+      renderAll();
+    }
+
+    function syncCategoricalFilter(filterId, value, checked) {
+      const definition = state.filterDefinitions.find((item) => item.id === filterId);
+      if (!definition) {
+        return;
+      }
+      const current = new Set(state.filters.values[filterId] || definition.defaultValue);
+      if (checked) {
+        current.add(value);
+      } else {
+        current.delete(value);
+      }
+      state.filters.values[filterId] = Array.from(current);
+      recomputeFilteredRows();
+      renderAll();
+    }
+
+    function attachEventListeners() {
+      refs.fileInput.addEventListener("change", handleFileUpload);
+
+      refs.resetDataBtn.addEventListener("click", () => {
+        clearDashboard();
+        refs.datasetStatus.textContent = "Dataset limpo. Carrega outro ficheiro para continuar.";
+      });
+
+      refs.resetFiltersBtn.addEventListener("click", () => {
+        if (!state.normalizedRows.length) {
+          return;
+        }
+        resetAllFilters();
+      });
+
+      refs.clearSelectionBtn.addEventListener("click", () => {
+        state.selectedListingId = null;
+        state.detailImageIndex = 0;
+        renderAll();
+      });
+
+      refs.focusSelectedBtn.addEventListener("click", () => {
+        if (!state.selectedListingId) {
+          return;
+        }
+        const selectedCard = refs.listingList.querySelector(`[data-listing-id="${CSS.escape(state.selectedListingId)}"]`);
+        if (selectedCard) {
+          selectedCard.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      });
+
+      refs.globalSearch.addEventListener("input", (event) => {
+        state.filters.searchText = event.target.value || "";
+        recomputeFilteredRows();
+        renderAll();
+      });
+
+      refs.mappingGrid.addEventListener("change", (event) => {
+        const target = event.target;
+        if (!(target instanceof HTMLSelectElement) || !target.dataset.mappingKey) {
+          return;
+        }
+        state.mapping[target.dataset.mappingKey] = target.value || "";
+        state.selectedListingId = null;
+        state.detailImageIndex = 0;
+        rebuildAnalyticsState();
+      });
+
+      refs.filterGroups.addEventListener("input", (event) => {
+        const target = event.target;
+        const filterCard = target.closest("[data-filter-id]");
+        if (!filterCard) {
+          return;
+        }
+        const filterId = filterCard.dataset.filterId;
+        if (target.dataset.role === "min-slider" || target.dataset.role === "min-input") {
+          syncNumericFilter(filterId, "min", target.value);
+        } else if (target.dataset.role === "max-slider" || target.dataset.role === "max-input") {
+          syncNumericFilter(filterId, "max", target.value);
+        } else if (target.dataset.role === "date-start") {
+          syncDateFilter(filterId, "start", target.value);
+        } else if (target.dataset.role === "date-end") {
+          syncDateFilter(filterId, "end", target.value);
+        } else if (target.dataset.role === "option-search") {
+          filterOptionList(target);
+        }
+      });
+
+      refs.filterGroups.addEventListener("change", (event) => {
+        const target = event.target;
+        const filterCard = target.closest("[data-filter-id]");
+        if (!filterCard) {
+          return;
+        }
+        const filterId = filterCard.dataset.filterId;
+        if (target.dataset.role === "option-checkbox") {
+          syncCategoricalFilter(filterId, target.value, target.checked);
+        }
+      });
+
+      refs.histFieldSelect.addEventListener("change", (event) => {
+        state.chartConfig.histogramField = event.target.value;
+        renderCharts();
+      });
+
+      refs.categoryFieldSelect.addEventListener("change", (event) => {
+        state.chartConfig.categoryField = event.target.value;
+        renderCharts();
+      });
+
+      refs.scatterXSelect.addEventListener("change", (event) => {
+        state.chartConfig.scatterX = event.target.value;
+        renderCharts();
+      });
+
+      refs.scatterYSelect.addEventListener("change", (event) => {
+        state.chartConfig.scatterY = event.target.value;
+        renderCharts();
+      });
+
+      refs.listingList.addEventListener("click", (event) => {
+        const card = event.target.closest("[data-listing-id]");
+        if (!card) {
+          return;
+        }
+        state.selectedListingId = card.dataset.listingId;
+        state.detailImageIndex = 0;
+        renderAll();
+      });
+
+      refs.detailPanel.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-thumb-index]");
+        if (!button) {
+          return;
+        }
+        state.detailImageIndex = Number(button.dataset.thumbIndex) || 0;
+        renderDetailPanel();
+      });
+
+      window.addEventListener("mousemove", moveTooltip);
+      window.addEventListener("resize", () => {
+        if (!state.rawRows.length) {
+          return;
+        }
+        renderCharts();
+        if (state.selectedListingId) {
+          renderComparisonPlots(computeListingComparison(getSelectedRow(), state.filteredRows));
+        }
+      });
+    }
+
+    function filterOptionList(input) {
+      const searchTerm = (input.value || "").trim().toLowerCase();
+      const optionItems = input.closest(".multi-select-content").querySelectorAll(".option-item");
+      optionItems.forEach((item) => {
+        const text = item.textContent.toLowerCase();
+        item.classList.toggle("hidden", searchTerm && !text.includes(searchTerm));
+      });
+    }
+
+    // ---------- Arranque ----------
+    attachEventListeners();
+    clearDashboard();
+  </script>
+</body>
+</html>
