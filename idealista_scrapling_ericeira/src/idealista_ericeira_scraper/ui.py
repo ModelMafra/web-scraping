@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+from collections import Counter
 from html import escape as html_escape
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 from pathlib import Path
 import re
+from statistics import mean, median
 from threading import Lock, Thread
 from typing import Any
 from urllib.parse import urlparse
@@ -15,6 +17,7 @@ from idealista_ericeira_scraper.core import (
     list_output_field_specs,
     load_config,
     load_output_selection,
+    read_jsonl,
     read_last_jsonl_record,
     save_output_selection,
     utc_now_iso,
@@ -668,6 +671,7 @@ UI_HTML = """<!doctype html>
         <h1>Painel simples de scraping</h1>
         <p class="muted">Escolhe o alvo, clica num botao e acompanha tudo na caixa de atividade. <strong>Sacar tudo</strong> ja corre todas as paginas sem pedires numero.</p>
         <div class="hero-actions">
+          <a class="nav-link" href="/analise">Abrir analise de dados</a>
           <a class="nav-link" href="/guia">Abrir guia do projeto</a>
         </div>
       </div>
@@ -1339,6 +1343,7 @@ GUIDE_HTML = """<!doctype html>
       <p class="eyebrow">Idealista / Ericeira</p>
       <div class="topbar">
         <a class="nav-link" href="/">Voltar ao painel</a>
+        <a class="nav-link" href="/analise">Abrir analise de dados</a>
       </div>
       <h1>Guia do projeto</h1>
       <p class="muted">Esta pagina mostra o conteudo do README dentro da app, mas com um layout mais limpo e mais facil de consultar.</p>
@@ -1347,6 +1352,559 @@ GUIDE_HTML = """<!doctype html>
       __GUIDE_CONTENT__
     </section>
   </main>
+</body>
+</html>
+"""
+
+ANALYSIS_HTML = """<!doctype html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Analise dos dados</title>
+  <style>
+    :root {
+      --bg-a: #d8e7e6;
+      --bg-b: #efe7d7;
+      --ink: #1d262b;
+      --muted: #66747a;
+      --line: rgba(22, 39, 46, 0.12);
+      --panel: rgba(255, 255, 255, 0.82);
+      --accent: #0f6b72;
+      --accent-soft: #d5eff0;
+      --accent-deep: #0d3038;
+      --shadow: 0 28px 70px rgba(20, 34, 40, 0.16);
+      --radius-xl: 30px;
+      --radius-lg: 22px;
+      --radius-md: 16px;
+      --mono: "SFMono-Regular", Consolas, monospace;
+      --body: "Avenir Next", "Segoe UI", sans-serif;
+      --display: "Iowan Old Style", "Palatino Linotype", serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 12% 18%, rgba(255, 255, 255, 0.72), transparent 20%),
+        radial-gradient(circle at 85% 15%, rgba(255, 255, 255, 0.38), transparent 18%),
+        linear-gradient(140deg, var(--bg-a) 0%, var(--bg-b) 55%, #f4efe2 100%);
+      color: var(--ink);
+      font-family: var(--body);
+      padding: 22px;
+    }
+
+    .shell {
+      width: min(1480px, 100%);
+      margin: 0 auto;
+      display: grid;
+      gap: 18px;
+    }
+
+    .panel {
+      border-radius: var(--radius-xl);
+      background: var(--panel);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+      padding: 22px 24px;
+      min-width: 0;
+    }
+
+    .hero {
+      display: grid;
+      gap: 12px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.9), rgba(213,239,240,0.82)),
+        linear-gradient(180deg, rgba(255,255,255,0.75), rgba(255,255,255,0.35));
+    }
+
+    .eyebrow {
+      margin: 0;
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--accent);
+    }
+
+    .topbar {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .nav-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      padding: 10px 14px;
+      border: 1px solid rgba(15, 107, 114, 0.18);
+      background: rgba(255,255,255,0.86);
+      color: var(--accent-deep);
+      font-weight: 800;
+      text-decoration: none;
+    }
+
+    h1, h2, h3 {
+      margin: 0;
+      font-family: var(--display);
+      letter-spacing: -0.03em;
+    }
+
+    h1 {
+      font-size: clamp(34px, 5vw, 56px);
+      line-height: 0.96;
+    }
+
+    h2 {
+      font-size: 28px;
+      line-height: 1.04;
+    }
+
+    h3 {
+      font-size: 18px;
+      line-height: 1.08;
+    }
+
+    p {
+      margin: 0;
+      line-height: 1.6;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .metric {
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.88);
+      padding: 16px;
+      display: grid;
+      gap: 6px;
+    }
+
+    .metric-label {
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+
+    .metric-value {
+      font-size: 28px;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .chart-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .section-copy {
+      display: grid;
+      gap: 6px;
+      margin-bottom: 14px;
+    }
+
+    .bar-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .bar-row {
+      display: grid;
+      gap: 6px;
+    }
+
+    .bar-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .bar-track {
+      block-size: 10px;
+      border-radius: 999px;
+      background: rgba(15, 107, 114, 0.12);
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      block-size: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #0f6b72, #6aa6ae);
+    }
+
+    .explorer-grid {
+      display: grid;
+      grid-template-columns: 430px minmax(0, 1fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .list-panel {
+      display: grid;
+      gap: 14px;
+      align-content: start;
+    }
+
+    .toolbar {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 180px;
+      gap: 10px;
+    }
+
+    input,
+    select {
+      width: 100%;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      padding: 12px 14px;
+      background: rgba(255,255,255,0.92);
+      color: var(--ink);
+      font: inherit;
+    }
+
+    .ads-count {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--muted);
+    }
+
+    .ads-list {
+      display: grid;
+      gap: 10px;
+      max-block-size: 920px;
+      overflow: auto;
+      padding-right: 4px;
+    }
+
+    .ad-row {
+      display: grid;
+      grid-template-columns: 72px minmax(0, 1fr);
+      gap: 12px;
+      padding: 10px;
+      border-radius: 20px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.88);
+      cursor: pointer;
+      transition: transform 120ms ease, border-color 120ms ease, background 120ms ease;
+    }
+
+    .ad-row:hover {
+      transform: translateY(-1px);
+      border-color: rgba(15, 107, 114, 0.28);
+    }
+
+    .ad-row.active {
+      background: rgba(213,239,240,0.74);
+      border-color: rgba(15, 107, 114, 0.34);
+    }
+
+    .ad-thumb {
+      inline-size: 72px;
+      block-size: 72px;
+      border-radius: 14px;
+      overflow: hidden;
+      background: linear-gradient(180deg, #0d2430, #102a35);
+      display: grid;
+      place-items: center;
+      color: rgba(236, 244, 245, 0.76);
+      font-size: 12px;
+      text-align: center;
+      padding: 8px;
+    }
+
+    .ad-thumb img {
+      inline-size: 100%;
+      block-size: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .ad-main {
+      display: grid;
+      gap: 4px;
+      align-content: start;
+      min-width: 0;
+    }
+
+    .ad-title {
+      font-weight: 800;
+      line-height: 1.3;
+    }
+
+    .ad-meta {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .preview-panel {
+      display: grid;
+      gap: 14px;
+    }
+
+    .preview-frame {
+      inline-size: 100%;
+      block-size: 980px;
+      border: 0;
+      border-radius: var(--radius-lg);
+      background: rgba(255,255,255,0.9);
+    }
+
+    @media (max-width: 1280px) {
+      .metrics-grid,
+      .chart-grid,
+      .explorer-grid,
+      .toolbar {
+        grid-template-columns: 1fr;
+      }
+
+      .preview-frame {
+        block-size: 760px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="panel hero">
+      <p class="eyebrow">Idealista / Ericeira</p>
+      <div class="topbar">
+        <a class="nav-link" href="/">Voltar ao painel</a>
+        <a class="nav-link" href="/guia">Abrir guia</a>
+      </div>
+      <h1>Analise dos dados</h1>
+      <p class="muted">Aqui tens uma vista de negocio dos anuncios guardados: metricas, distribuicoes e um explorador com `iframe` para clicar em cada anuncio e ver imagens, metadados e o link original.</p>
+    </section>
+
+    <section id="metricsGrid" class="metrics-grid"></section>
+
+    <section class="chart-grid">
+      <article class="panel">
+        <div class="section-copy">
+          <h2>Top localizacoes</h2>
+          <p class="muted">Onde existem mais anuncios no dataset atual.</p>
+        </div>
+        <div id="locationsChart" class="bar-list"></div>
+      </article>
+
+      <article class="panel">
+        <div class="section-copy">
+          <h2>Tipologias</h2>
+          <p class="muted">Distribuicao por numero de quartos.</p>
+        </div>
+        <div id="bedroomsChart" class="bar-list"></div>
+      </article>
+
+      <article class="panel">
+        <div class="section-copy">
+          <h2>Tipos de imovel</h2>
+          <p class="muted">Agrupamento rapido pelo tipo principal do anuncio.</p>
+        </div>
+        <div id="typesChart" class="bar-list"></div>
+      </article>
+    </section>
+
+    <section class="explorer-grid">
+      <article class="panel list-panel">
+        <div class="section-copy">
+          <h2>Explorador de anuncios</h2>
+          <p class="muted">Pesquisa, ordena e clica num anuncio para abrir o `iframe` ao lado.</p>
+        </div>
+        <div class="toolbar">
+          <input id="searchInput" type="search" placeholder="Pesquisar por titulo, zona ou ID">
+          <select id="sortSelect">
+            <option value="latest">Mais recentes</option>
+            <option value="price_desc">Preco mais alto</option>
+            <option value="price_asc">Preco mais baixo</option>
+          </select>
+        </div>
+        <div id="adsCount" class="ads-count">A carregar anuncios...</div>
+        <div id="adsList" class="ads-list"></div>
+      </article>
+
+      <article class="panel preview-panel">
+        <div class="section-copy">
+          <h2>Preview no iframe</h2>
+          <p class="muted">O `iframe` mostra a ficha interna do anuncio selecionado, com galeria de imagens e atalho para o URL original.</p>
+        </div>
+        <iframe id="previewFrame" class="preview-frame" title="Preview do anuncio"></iframe>
+      </article>
+    </section>
+  </main>
+
+  <script>
+    let analysisData = null;
+    let selectedListingId = null;
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;");
+    }
+
+    function formatNumber(value, digits = 0) {
+      if (value === null || typeof value === "undefined") {
+        return "—";
+      }
+      return new Intl.NumberFormat("pt-PT", {
+        maximumFractionDigits: digits,
+        minimumFractionDigits: digits,
+      }).format(value);
+    }
+
+    function formatEuro(value) {
+      if (value === null || typeof value === "undefined") {
+        return "—";
+      }
+      return `${formatNumber(value)} €`;
+    }
+
+    function renderMetrics() {
+      const summary = analysisData.summary;
+      const items = [
+        ["Total anuncios", formatNumber(summary.total_listings)],
+        ["Com preco", formatNumber(summary.priced_listings)],
+        ["Preco medio", formatEuro(summary.average_price_eur)],
+        ["Preco mediano", formatEuro(summary.median_price_eur)],
+        ["Preco minimo", formatEuro(summary.min_price_eur)],
+        ["Preco maximo", formatEuro(summary.max_price_eur)],
+        ["Preco medio / m²", formatEuro(summary.average_price_per_m2_eur)],
+        ["Area media", summary.average_area_m2 ? `${formatNumber(summary.average_area_m2, 1)} m²` : "—"],
+        ["Media de imagens", formatNumber(summary.average_images, 1)],
+        ["Zonas unicas", formatNumber(summary.unique_locations)],
+      ];
+      document.getElementById("metricsGrid").innerHTML = items.map(([label, value]) => `
+        <article class="metric">
+          <div class="metric-label">${escapeHtml(label)}</div>
+          <div class="metric-value">${escapeHtml(value)}</div>
+        </article>
+      `).join("");
+    }
+
+    function renderBarList(elementId, items, formatter) {
+      const root = document.getElementById(elementId);
+      if (!items || !items.length) {
+        root.innerHTML = `<p class="muted">Sem dados suficientes.</p>`;
+        return;
+      }
+      const max = Math.max(...items.map((item) => item.count), 1);
+      root.innerHTML = items.map((item) => `
+        <article class="bar-row">
+          <div class="bar-head">
+            <span>${escapeHtml(item.label)}</span>
+            <span>${escapeHtml(formatter(item))}</span>
+          </div>
+          <div class="bar-track">
+            <div class="bar-fill" style="width:${(item.count / max) * 100}%"></div>
+          </div>
+        </article>
+      `).join("");
+    }
+
+    function filteredAds() {
+      if (!analysisData) return [];
+      const query = (document.getElementById("searchInput").value || "").trim().toLowerCase();
+      const sort = document.getElementById("sortSelect").value;
+      let ads = analysisData.ads.slice();
+      if (query) {
+        ads = ads.filter((ad) => [ad.title, ad.address, ad.listing_id, ad.property_type]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase()
+          .includes(query)
+        );
+      }
+      ads.sort((a, b) => {
+        if (sort === "price_desc") return (b.price_amount_eur || -1) - (a.price_amount_eur || -1);
+        if (sort === "price_asc") return (a.price_amount_eur || Number.MAX_SAFE_INTEGER) - (b.price_amount_eur || Number.MAX_SAFE_INTEGER);
+        return String(b.fetched_at || "").localeCompare(String(a.fetched_at || ""));
+      });
+      return ads;
+    }
+
+    function updatePreview() {
+      const frame = document.getElementById("previewFrame");
+      frame.src = selectedListingId ? `/analise/anuncio/${selectedListingId}` : "about:blank";
+    }
+
+    function renderAdsList() {
+      const ads = filteredAds();
+      const countLabel = ads.length === 1 ? "1 anuncio" : `${formatNumber(ads.length)} anuncios`;
+      document.getElementById("adsCount").textContent = countLabel;
+      if (!ads.length) {
+        selectedListingId = null;
+        updatePreview();
+        document.getElementById("adsList").innerHTML = `<p class="muted">Nenhum anuncio corresponde ao filtro atual.</p>`;
+        return;
+      }
+
+      if (!ads.some((ad) => ad.listing_id === selectedListingId)) {
+        selectedListingId = ads[0].listing_id;
+      }
+
+      document.getElementById("adsList").innerHTML = ads.map((ad) => `
+        <article class="ad-row ${ad.listing_id === selectedListingId ? "active" : ""}" data-id="${escapeHtml(ad.listing_id)}">
+          <div class="ad-thumb">
+            ${ad.preview_image_url
+              ? `<img loading="lazy" src="${escapeHtml(ad.preview_image_url)}" alt="${escapeHtml(ad.title || ad.listing_id)}">`
+              : `<span>Sem imagem</span>`}
+          </div>
+          <div class="ad-main">
+            <div class="ad-title">${escapeHtml(ad.title || "Sem titulo")}</div>
+            <div class="ad-meta">${escapeHtml(ad.address || "Sem localizacao")}</div>
+            <div class="ad-meta">${escapeHtml(ad.price_text || formatEuro(ad.price_amount_eur))}</div>
+            <div class="ad-meta">${escapeHtml(ad.bedrooms || "—")} · ${escapeHtml(ad.area_label || "—")} · ${escapeHtml(ad.images_label)}</div>
+          </div>
+        </article>
+      `).join("");
+
+      for (const node of document.querySelectorAll(".ad-row")) {
+        node.addEventListener("click", () => {
+          selectedListingId = node.dataset.id;
+          renderAdsList();
+        });
+      }
+
+      updatePreview();
+    }
+
+    async function loadAnalysis() {
+      const response = await fetch("/api/analysis");
+      analysisData = await response.json();
+      renderMetrics();
+      renderBarList("locationsChart", analysisData.top_locations, (item) => `${formatNumber(item.count)} anuncios`);
+      renderBarList("bedroomsChart", analysisData.bedrooms, (item) => `${formatNumber(item.count)} anuncios`);
+      renderBarList("typesChart", analysisData.property_types, (item) => `${formatNumber(item.count)} anuncios`);
+      renderAdsList();
+    }
+
+    document.getElementById("searchInput").addEventListener("input", renderAdsList);
+    document.getElementById("sortSelect").addEventListener("change", renderAdsList);
+
+    loadAnalysis();
+  </script>
 </body>
 </html>
 """
@@ -1483,10 +2041,682 @@ def _guide_html(config_path: str | None = None) -> str:
     return GUIDE_HTML.replace("__GUIDE_CONTENT__", _markdown_to_html(markdown))
 
 
+def _detail_records(config_path: str | None = None) -> list[dict[str, Any]]:
+    _, paths = load_config(config_path)
+    if not paths.details_output.exists():
+        return []
+
+    latest_by_listing_id: dict[str, dict[str, Any]] = {}
+    for record in read_jsonl(paths.details_output):
+        listing_id = str(record.get("listing_id") or "").strip()
+        if not listing_id:
+            continue
+        latest_by_listing_id[listing_id] = dict(record, listing_id=listing_id)
+
+    records = list(latest_by_listing_id.values())
+    records.sort(key=lambda item: str(item.get("fetched_at") or ""), reverse=True)
+    return records
+
+
+def _number_from_text(value: str | None) -> float | None:
+    if not value:
+        return None
+    cleaned = value.strip().replace(" ", "")
+    if not cleaned:
+        return None
+    if "," in cleaned and "." in cleaned:
+        if cleaned.rfind(",") > cleaned.rfind("."):
+            cleaned = cleaned.replace(".", "").replace(",", ".")
+        else:
+            cleaned = cleaned.replace(",", "")
+    elif "," in cleaned:
+        cleaned = cleaned.replace(".", "").replace(",", ".")
+    elif cleaned.count(".") == 1 and len(cleaned.split(".")[1]) == 3:
+        cleaned = cleaned.replace(".", "")
+    try:
+        return float(cleaned)
+    except ValueError:
+        return None
+
+
+def _price_amount(record: dict[str, Any]) -> int | None:
+    amount = record.get("price_amount_eur")
+    if isinstance(amount, bool):
+        return None
+    if isinstance(amount, (int, float)):
+        return int(amount)
+
+    price_text = str(record.get("price_text") or "")
+    match = re.search(r"(\d[\d\s\.,]*)\s*€", price_text)
+    if not match:
+        return None
+    value = _number_from_text(match.group(1))
+    return int(value) if value is not None else None
+
+
+def _area_candidates(text: str | None) -> list[float]:
+    if not text:
+        return []
+    values: list[float] = []
+    for match in re.finditer(r"(\d[\d\s\.,]*)\s*m²", text, flags=re.I):
+        parsed = _number_from_text(match.group(1))
+        if parsed is not None:
+            values.append(parsed)
+    return values
+
+
+def _guess_area_m2(record: dict[str, Any]) -> float | None:
+    feature_list = record.get("feature_list") or []
+    preferred: list[float] = []
+    fallback: list[float] = []
+
+    for item in feature_list:
+        if not isinstance(item, str):
+            continue
+        numbers = _area_candidates(item)
+        if not numbers:
+            continue
+        lowered = item.lower()
+        if "area bruta" in lowered or "área bruta" in lowered:
+            preferred.extend(numbers)
+        fallback.extend(numbers)
+
+    if preferred:
+        return max(preferred)
+    if fallback:
+        return max(fallback)
+
+    for value in (
+        record.get("title"),
+        record.get("description"),
+        record.get("page_text_excerpt"),
+    ):
+        numbers = _area_candidates(str(value or ""))
+        if numbers:
+            return max(numbers)
+    return None
+
+
+def _guess_bedrooms(record: dict[str, Any]) -> str | None:
+    candidates: list[str] = []
+    feature_list = record.get("feature_list") or []
+    candidates.extend(item for item in feature_list if isinstance(item, str))
+    candidates.extend(
+        [
+            str(record.get("title") or ""),
+            str(record.get("description") or ""),
+        ]
+    )
+    for text in candidates:
+        match = re.search(r"\bt\s*(\d{1,2})\b", text, flags=re.I)
+        if match:
+            return f"T{int(match.group(1))}"
+    return None
+
+
+def _guess_property_type(record: dict[str, Any]) -> str | None:
+    title = str(record.get("title") or "").strip()
+    if title:
+        match = re.match(
+            r"([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ\s]+?)(?:\s+t\d+\b|\s+à\s+(?:venda|renda|arrendar|alugar)\b)",
+            title,
+            flags=re.I,
+        )
+        if match:
+            return match.group(1).strip()
+
+    feature_list = record.get("feature_list") or []
+    for item in feature_list:
+        if not isinstance(item, str):
+            continue
+        lowered = item.lower()
+        if any(
+            token in lowered
+            for token in (
+                "m²",
+                "casa de banho",
+                "casas de banho",
+                "garagem",
+                "elevador",
+                "terraço",
+                "terraco",
+                "varanda",
+                "estado",
+                "piso",
+                "andar",
+                "ar condicionado",
+            )
+        ):
+            continue
+        cleaned = item.strip()
+        if cleaned:
+            return cleaned
+
+    match = re.match(r"(.+?)\s+à\s+(?:venda|renda|arrendar|alugar)\b", title, flags=re.I)
+    if match:
+        return match.group(1).strip()
+    return None
+
+
+def _listing_images(record: dict[str, Any], limit: int | None = 24) -> list[str]:
+    raw_images = record.get("images") or []
+    images: list[str] = []
+    seen: set[str] = set()
+    for item in raw_images:
+        if not isinstance(item, str):
+            continue
+        url = item.strip()
+        if not url or url in seen:
+            continue
+        lowered = url.lower()
+        if any(
+            token in lowered
+            for token in (
+                ".svg",
+                "logo",
+                "icon",
+                "flag",
+                "avatar",
+                "social",
+                "maps.googleapis",
+                "googleapis",
+            )
+        ):
+            continue
+        if not re.search(r"\.(?:jpe?g|png|webp)(?:\?|$)", lowered):
+            continue
+        seen.add(url)
+        images.append(url)
+        if limit is not None and len(images) >= limit:
+            break
+    return images
+
+
+def _format_eur(value: float | int | None, digits: int = 0) -> str:
+    if value is None:
+        return "—"
+    number = f"{value:,.{digits}f}"
+    number = number.replace(",", "X").replace(".", ",").replace("X", ".")
+    if digits == 0:
+        number = number.split(",")[0]
+    return f"{number} €"
+
+
+def _format_count_label(count: int, singular: str, plural: str) -> str:
+    return f"{count} {singular if count == 1 else plural}"
+
+
+def _bedroom_counter_rows(counter: Counter[str], limit: int = 8) -> list[dict[str, Any]]:
+    def sort_key(item: tuple[str, int]) -> tuple[int, int | str]:
+        label = item[0]
+        match = re.match(r"^T(\d+)$", label)
+        if match:
+            return (0, int(match.group(1)))
+        return (1, label)
+
+    return [
+        {"label": label, "count": count}
+        for label, count in sorted(counter.items(), key=sort_key)[:limit]
+    ]
+
+
+def _counter_rows(counter: Counter[str], limit: int = 8) -> list[dict[str, Any]]:
+    return [
+        {"label": label, "count": count}
+        for label, count in counter.most_common(limit)
+    ]
+
+
+def _analysis_payload(config_path: str | None = None) -> dict[str, Any]:
+    records = _detail_records(config_path)
+    prices: list[int] = []
+    price_per_m2_values: list[float] = []
+    areas: list[float] = []
+    image_counts: list[int] = []
+    location_counter: Counter[str] = Counter()
+    bedroom_counter: Counter[str] = Counter()
+    property_counter: Counter[str] = Counter()
+    ads: list[dict[str, Any]] = []
+
+    for record in records:
+        listing_id = str(record.get("listing_id") or "").strip()
+        if not listing_id:
+            continue
+
+        images = _listing_images(record, limit=None)
+        address = str(record.get("address") or "").strip() or "Sem localizacao"
+        title = str(record.get("title") or "").strip() or "Sem titulo"
+        property_type = _guess_property_type(record) or "Nao identificado"
+        bedrooms = _guess_bedrooms(record) or "Nao indicado"
+        area_m2 = _guess_area_m2(record)
+        price_amount = _price_amount(record)
+        price_text = str(record.get("price_text") or "").strip()
+        if not price_text and price_amount is not None:
+            price_text = _format_eur(price_amount)
+
+        if price_amount is not None:
+            prices.append(price_amount)
+        if area_m2 is not None:
+            areas.append(area_m2)
+        if price_amount is not None and area_m2 and area_m2 > 0:
+            price_per_m2_values.append(price_amount / area_m2)
+
+        image_counts.append(len(images))
+        location_counter[address] += 1
+        bedroom_counter[bedrooms] += 1
+        property_counter[property_type] += 1
+
+        ads.append(
+            {
+                "address": address,
+                "area_label": f"{area_m2:.0f} m²" if area_m2 is not None else "Area n/d",
+                "bedrooms": bedrooms,
+                "fetched_at": record.get("fetched_at"),
+                "images_label": _format_count_label(len(images), "imagem", "imagens"),
+                "listing_id": listing_id,
+                "preview_image_url": images[0] if images else None,
+                "price_amount_eur": price_amount,
+                "price_text": price_text or "Sem preco",
+                "property_type": property_type,
+                "title": title,
+                "url": record.get("url") or record.get("final_url"),
+            }
+        )
+
+    summary = {
+        "average_area_m2": round(mean(areas), 1) if areas else None,
+        "average_images": round(mean(image_counts), 1) if image_counts else None,
+        "average_price_eur": round(mean(prices)) if prices else None,
+        "average_price_per_m2_eur": round(mean(price_per_m2_values)) if price_per_m2_values else None,
+        "max_price_eur": max(prices) if prices else None,
+        "median_price_eur": round(median(prices)) if prices else None,
+        "min_price_eur": min(prices) if prices else None,
+        "priced_listings": len(prices),
+        "total_listings": len(records),
+        "unique_locations": len(location_counter),
+    }
+
+    return {
+        "ads": ads,
+        "bedrooms": _bedroom_counter_rows(bedroom_counter),
+        "property_types": _counter_rows(property_counter),
+        "summary": summary,
+        "top_locations": _counter_rows(location_counter),
+    }
+
+
+def _analysis_listing_html(config_path: str | None, listing_id: str) -> str:
+    record = next((item for item in _detail_records(config_path) if str(item.get("listing_id")) == listing_id), None)
+    if record is None:
+        return """<!doctype html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Anuncio nao encontrado</title>
+  <style>
+    body { margin: 0; padding: 24px; font-family: "Avenir Next", "Segoe UI", sans-serif; background: #f4f0e4; color: #1d262b; }
+    .panel { max-width: 720px; margin: 0 auto; padding: 28px; border-radius: 24px; background: rgba(255,255,255,0.88); border: 1px solid rgba(22,39,46,0.12); }
+    h1 { margin: 0 0 8px; font-family: "Iowan Old Style", "Palatino Linotype", serif; font-size: 36px; }
+  </style>
+</head>
+<body>
+  <main class="panel">
+    <h1>Anuncio nao encontrado</h1>
+    <p>O ID pedido nao existe no JSONL atual.</p>
+  </main>
+</body>
+</html>"""
+
+    images = _listing_images(record, limit=40)
+    title = str(record.get("title") or "").strip() or "Sem titulo"
+    address = str(record.get("address") or "").strip() or "Sem localizacao"
+    price_amount = _price_amount(record)
+    price_text = str(record.get("price_text") or "").strip() or _format_eur(price_amount)
+    property_type = _guess_property_type(record) or "Nao identificado"
+    bedrooms = _guess_bedrooms(record) or "Nao indicado"
+    area_m2 = _guess_area_m2(record)
+    price_per_m2 = round(price_amount / area_m2) if price_amount is not None and area_m2 and area_m2 > 0 else None
+    feature_list = [str(item).strip() for item in (record.get("feature_list") or []) if str(item).strip()]
+    description = str(record.get("description") or "").strip()
+    original_url = str(record.get("url") or record.get("final_url") or "").strip()
+
+    gallery_main = ""
+    gallery_thumbs = ""
+    if images:
+        first_image = html_escape(images[0])
+        gallery_main = f"""
+          <div class="main-media">
+            <img id="mainImage" src="{first_image}" alt="{html_escape(title)}">
+          </div>
+        """
+        gallery_thumbs = "".join(
+            f"""
+            <button class="thumb {'active' if index == 0 else ''}" type="button" data-src="{html_escape(url)}">
+              <img src="{html_escape(url)}" alt="Imagem {index + 1}">
+            </button>
+            """
+            for index, url in enumerate(images)
+        )
+        gallery_thumbs = f'<div class="thumbs">{gallery_thumbs}</div>'
+    else:
+        gallery_main = '<div class="main-media empty">Sem imagens filtradas para este anuncio.</div>'
+
+    features_html = "".join(f"<li>{html_escape(item)}</li>" for item in feature_list[:24])
+    description_html = f"<p>{html_escape(description)}</p>" if description else "<p>Sem descricao guardada.</p>"
+    open_link = (
+        f'<a class="external-link" href="{html_escape(original_url)}" target="_blank" rel="noreferrer">Abrir anuncio original</a>'
+        if original_url
+        else ""
+    )
+
+    return f"""<!doctype html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{html_escape(title)}</title>
+  <style>
+    :root {{
+      --ink: #1d262b;
+      --muted: #66747a;
+      --line: rgba(22, 39, 46, 0.12);
+      --accent: #0f6b72;
+      --panel: rgba(255, 255, 255, 0.92);
+      --shadow: 0 20px 50px rgba(20, 34, 40, 0.15);
+      --radius-xl: 28px;
+      --radius-lg: 20px;
+      --display: "Iowan Old Style", "Palatino Linotype", serif;
+      --body: "Avenir Next", "Segoe UI", sans-serif;
+    }}
+
+    * {{ box-sizing: border-box; }}
+
+    body {{
+      margin: 0;
+      min-height: 100vh;
+      padding: 18px;
+      font-family: var(--body);
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 12% 18%, rgba(255, 255, 255, 0.72), transparent 20%),
+        linear-gradient(145deg, #d8e7e6 0%, #efe7d7 70%, #f3eee2 100%);
+    }}
+
+    .shell {{
+      display: grid;
+      gap: 18px;
+      max-width: 1280px;
+      margin: 0 auto;
+    }}
+
+    .panel {{
+      border-radius: var(--radius-xl);
+      background: var(--panel);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      padding: 20px;
+    }}
+
+    .hero {{
+      display: grid;
+      gap: 10px;
+      background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(213,239,240,0.8));
+    }}
+
+    .hero h1 {{
+      margin: 0;
+      font-family: var(--display);
+      font-size: clamp(32px, 4vw, 48px);
+      line-height: 0.98;
+      letter-spacing: -0.03em;
+    }}
+
+    .hero p {{
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.55;
+    }}
+
+    .chips {{
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 4px;
+    }}
+
+    .chip {{
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 8px 12px;
+      background: rgba(15, 107, 114, 0.1);
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 800;
+    }}
+
+    .grid {{
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 18px;
+    }}
+
+    .gallery {{
+      display: grid;
+      gap: 12px;
+    }}
+
+    .main-media {{
+      block-size: 420px;
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      background: linear-gradient(180deg, #0d2430, #102a35);
+      border: 1px solid var(--line);
+    }}
+
+    .main-media.empty {{
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      color: rgba(236, 244, 245, 0.9);
+      text-align: center;
+    }}
+
+    .main-media img {{
+      inline-size: 100%;
+      block-size: 100%;
+      object-fit: contain;
+      display: block;
+      background: #102a35;
+    }}
+
+    .thumbs {{
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(88px, 1fr));
+      gap: 10px;
+    }}
+
+    .thumb {{
+      padding: 0;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      overflow: hidden;
+      background: rgba(255,255,255,0.84);
+      cursor: pointer;
+    }}
+
+    .thumb.active {{
+      border-color: rgba(15, 107, 114, 0.34);
+      box-shadow: 0 0 0 3px rgba(15, 107, 114, 0.1);
+    }}
+
+    .thumb img {{
+      inline-size: 100%;
+      block-size: 82px;
+      object-fit: cover;
+      display: block;
+    }}
+
+    .side {{
+      display: grid;
+      gap: 14px;
+      align-content: start;
+    }}
+
+    .mini-grid {{
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }}
+
+    .mini-card {{
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.88);
+      padding: 14px;
+    }}
+
+    .mini-label {{
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }}
+
+    .mini-value {{
+      font-size: 20px;
+      font-weight: 800;
+      line-height: 1.2;
+      word-break: break-word;
+    }}
+
+    .external-link {{
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      padding: 11px 14px;
+      background: var(--accent);
+      color: white;
+      text-decoration: none;
+      font-weight: 800;
+    }}
+
+    .text-block {{
+      display: grid;
+      gap: 10px;
+    }}
+
+    .text-block h2 {{
+      margin: 0;
+      font-family: var(--display);
+      font-size: 28px;
+      letter-spacing: -0.03em;
+    }}
+
+    .text-block p {{
+      margin: 0;
+      line-height: 1.65;
+      color: var(--ink);
+    }}
+
+    ul {{
+      margin: 0;
+      padding-left: 20px;
+      display: grid;
+      gap: 8px;
+      line-height: 1.55;
+    }}
+
+    @media (max-width: 960px) {{
+      .grid,
+      .mini-grid {{
+        grid-template-columns: 1fr;
+      }}
+
+      .main-media {{
+        block-size: 320px;
+      }}
+    }}
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="panel hero">
+      <h1>{html_escape(title)}</h1>
+      <p>{html_escape(address)}</p>
+      <div class="chips">
+        <span class="chip">{html_escape(price_text or "Sem preco")}</span>
+        <span class="chip">{html_escape(property_type)}</span>
+        <span class="chip">{html_escape(bedrooms)}</span>
+        <span class="chip">{html_escape(f"{area_m2:.0f} m²" if area_m2 is not None else "Area n/d")}</span>
+      </div>
+      {open_link}
+    </section>
+
+    <section class="grid">
+      <article class="panel gallery">
+        {gallery_main}
+        {gallery_thumbs}
+      </article>
+
+      <aside class="side">
+        <article class="panel mini-grid">
+          <div class="mini-card">
+            <div class="mini-label">ID</div>
+            <div class="mini-value">{html_escape(str(record.get("listing_id") or "—"))}</div>
+          </div>
+          <div class="mini-card">
+            <div class="mini-label">Data</div>
+            <div class="mini-value">{html_escape(str(record.get("fetched_at") or "—"))}</div>
+          </div>
+          <div class="mini-card">
+            <div class="mini-label">Preco / m²</div>
+            <div class="mini-value">{html_escape(_format_eur(price_per_m2) if price_per_m2 is not None else "—")}</div>
+          </div>
+          <div class="mini-card">
+            <div class="mini-label">Imagens</div>
+            <div class="mini-value">{html_escape(_format_count_label(len(images), "imagem", "imagens"))}</div>
+          </div>
+        </article>
+
+        <article class="panel text-block">
+          <h2>Descricao</h2>
+          {description_html}
+        </article>
+
+        <article class="panel text-block">
+          <h2>Caracteristicas</h2>
+          <ul>{features_html or "<li>Sem caracteristicas adicionais guardadas.</li>"}</ul>
+        </article>
+      </aside>
+    </section>
+  </main>
+
+  <script>
+    const mainImage = document.getElementById("mainImage");
+    for (const thumb of document.querySelectorAll(".thumb")) {{
+      thumb.addEventListener("click", () => {{
+        if (!mainImage) return;
+        mainImage.src = thumb.dataset.src;
+        for (const node of document.querySelectorAll(".thumb")) {{
+          node.classList.remove("active");
+        }}
+        thumb.classList.add("active");
+      }});
+    }}
+  </script>
+</body>
+</html>"""
+
+
 def _latest_record_payload(record: dict[str, Any] | None) -> dict[str, Any] | None:
     if not record:
         return None
-    images = record.get("images") or []
+    images = _listing_images(record)
     return {
         "address": record.get("address"),
         "description": _short_text(record.get("description")),
@@ -1670,8 +2900,21 @@ def _handler_factory(config_path: str | None = None):
             if route == "/":
                 self._send_html(UI_HTML)
                 return
+            if route == "/analise":
+                self._send_html(ANALYSIS_HTML)
+                return
             if route == "/guia":
                 self._send_html(_guide_html(config_path))
+                return
+            if route == "/api/analysis":
+                self._send_json(_analysis_payload(config_path))
+                return
+            if route.startswith("/analise/anuncio/"):
+                listing_id = route.rsplit("/", 1)[-1].strip()
+                if not listing_id:
+                    self.send_error(404, "Anuncio nao encontrado.")
+                    return
+                self._send_html(_analysis_listing_html(config_path, listing_id))
                 return
             if route == "/api/ui":
                 self._send_json(_ui_payload(config_path))
@@ -1712,9 +2955,9 @@ def _handler_factory(config_path: str | None = None):
         def log_message(self, format: str, *args) -> None:
             return
 
-        def _send_html(self, body: str) -> None:
+        def _send_html(self, body: str, status: int = 200) -> None:
             payload = body.encode("utf-8")
-            self.send_response(200)
+            self.send_response(status)
             self.send_header("Content-Type", "text/html; charset=utf-8")
             self.send_header("Content-Length", str(len(payload)))
             self.end_headers()
