@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+from html import escape as html_escape
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
+from pathlib import Path
+import re
 from threading import Lock, Thread
 from typing import Any
 from urllib.parse import urlparse
@@ -125,6 +128,32 @@ UI_HTML = """<!doctype html>
       gap: 8px;
       max-width: 700px;
       min-width: 0;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 6px;
+    }
+
+    .nav-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      padding: 10px 14px;
+      border: 1px solid rgba(15, 107, 114, 0.18);
+      background: rgba(255,255,255,0.82);
+      color: var(--accent-deep);
+      font-weight: 800;
+      text-decoration: none;
+      transition: transform 120ms ease, background 120ms ease;
+    }
+
+    .nav-link:hover {
+      transform: translateY(-1px);
+      background: white;
     }
 
     .eyebrow {
@@ -638,6 +667,9 @@ UI_HTML = """<!doctype html>
         <p class="eyebrow">Idealista / Ericeira</p>
         <h1>Painel simples de scraping</h1>
         <p class="muted">Escolhe o alvo, clica num botao e acompanha tudo na caixa de atividade. <strong>Sacar tudo</strong> ja corre todas as paginas sem pedires numero.</p>
+        <div class="hero-actions">
+          <a class="nav-link" href="/guia">Abrir guia do projeto</a>
+        </div>
       </div>
       <div id="heroStats" class="hero-stats"></div>
     </header>
@@ -1125,6 +1157,200 @@ UI_HTML = """<!doctype html>
 </html>
 """
 
+GUIDE_HTML = """<!doctype html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Guia do Projeto</title>
+  <style>
+    :root {
+      --bg-a: #d8e7e6;
+      --bg-b: #efe7d7;
+      --ink: #1d262b;
+      --muted: #66747a;
+      --line: rgba(22, 39, 46, 0.12);
+      --panel: rgba(255, 255, 255, 0.82);
+      --accent: #0f6b72;
+      --accent-soft: #d5eff0;
+      --accent-deep: #0d3038;
+      --shadow: 0 28px 70px rgba(20, 34, 40, 0.16);
+      --radius-xl: 30px;
+      --radius-lg: 22px;
+      --mono: "SFMono-Regular", Consolas, monospace;
+      --body: "Avenir Next", "Segoe UI", sans-serif;
+      --display: "Iowan Old Style", "Palatino Linotype", serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 12% 18%, rgba(255, 255, 255, 0.72), transparent 20%),
+        radial-gradient(circle at 85% 15%, rgba(255, 255, 255, 0.38), transparent 18%),
+        linear-gradient(140deg, var(--bg-a) 0%, var(--bg-b) 55%, #f4efe2 100%);
+      color: var(--ink);
+      font-family: var(--body);
+      padding: 22px;
+    }
+
+    .shell {
+      width: min(1120px, 100%);
+      margin: 0 auto;
+      display: grid;
+      gap: 18px;
+    }
+
+    .panel {
+      border-radius: var(--radius-xl);
+      background: var(--panel);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+      padding: 24px 28px;
+    }
+
+    .hero {
+      display: grid;
+      gap: 12px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.9), rgba(213,239,240,0.82)),
+        linear-gradient(180deg, rgba(255,255,255,0.75), rgba(255,255,255,0.35));
+    }
+
+    .eyebrow {
+      margin: 0;
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--accent);
+    }
+
+    h1, h2, h3 {
+      margin: 0;
+      font-family: var(--display);
+      letter-spacing: -0.03em;
+    }
+
+    h1 {
+      font-size: clamp(34px, 5vw, 56px);
+      line-height: 0.96;
+    }
+
+    h2 {
+      font-size: 30px;
+      line-height: 1.02;
+      margin-top: 8px;
+    }
+
+    h3 {
+      font-size: 22px;
+      line-height: 1.06;
+      margin-top: 4px;
+    }
+
+    p {
+      margin: 0;
+      line-height: 1.65;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .topbar {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .nav-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      padding: 10px 14px;
+      border: 1px solid rgba(15, 107, 114, 0.18);
+      background: rgba(255,255,255,0.86);
+      color: var(--accent-deep);
+      font-weight: 800;
+      text-decoration: none;
+    }
+
+    .guide {
+      display: grid;
+      gap: 18px;
+    }
+
+    .guide p + p {
+      margin-top: 10px;
+    }
+
+    .guide ul,
+    .guide ol {
+      margin: 0;
+      padding-left: 22px;
+      display: grid;
+      gap: 8px;
+      line-height: 1.6;
+    }
+
+    .guide code {
+      font-family: var(--mono);
+      background: rgba(15, 107, 114, 0.08);
+      padding: 1px 6px;
+      border-radius: 8px;
+      font-size: 0.96em;
+    }
+
+    .guide pre {
+      margin: 0;
+      padding: 16px 18px;
+      border-radius: var(--radius-lg);
+      background: linear-gradient(180deg, #0d2430, #102a35);
+      color: #ecf4f5;
+      overflow: auto;
+      font-family: var(--mono);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .guide pre code {
+      background: transparent;
+      padding: 0;
+      border-radius: 0;
+      color: inherit;
+    }
+
+    .guide h2,
+    .guide h3 {
+      padding-top: 18px;
+      border-top: 1px solid var(--line);
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="panel hero">
+      <p class="eyebrow">Idealista / Ericeira</p>
+      <div class="topbar">
+        <a class="nav-link" href="/">Voltar ao painel</a>
+      </div>
+      <h1>Guia do projeto</h1>
+      <p class="muted">Esta pagina mostra o conteudo do README dentro da app, mas com um layout mais limpo e mais facil de consultar.</p>
+    </section>
+    <section class="panel guide">
+      __GUIDE_CONTENT__
+    </section>
+  </main>
+</body>
+</html>
+"""
+
 
 def _friendly_target_label(name: str) -> str:
     return TARGET_LABELS.get(name, name.replace("_", " ").title())
@@ -1140,6 +1366,121 @@ def _short_text(value: str | None, limit: int = 180) -> str | None:
     if len(value) <= limit:
         return value
     return value[: limit - 3] + "..."
+
+
+def _inline_markdown_html(text: str) -> str:
+    pattern = re.compile(r"(`[^`]+`|\*\*[^*]+\*\*)")
+    parts: list[str] = []
+    cursor = 0
+    for match in pattern.finditer(text):
+        parts.append(html_escape(text[cursor:match.start()]))
+        token = match.group(0)
+        if token.startswith("`"):
+            parts.append(f"<code>{html_escape(token[1:-1])}</code>")
+        else:
+            parts.append(f"<strong>{html_escape(token[2:-2])}</strong>")
+        cursor = match.end()
+    parts.append(html_escape(text[cursor:]))
+    return "".join(parts)
+
+
+def _markdown_to_html(markdown: str) -> str:
+    html_parts: list[str] = []
+    paragraph_lines: list[str] = []
+    list_items: list[str] = []
+    list_kind: str | None = None
+    code_lines: list[str] = []
+    in_code = False
+
+    def flush_paragraph() -> None:
+        nonlocal paragraph_lines
+        if not paragraph_lines:
+            return
+        text = " ".join(part.strip() for part in paragraph_lines if part.strip())
+        html_parts.append(f"<p>{_inline_markdown_html(text)}</p>")
+        paragraph_lines = []
+
+    def flush_list() -> None:
+        nonlocal list_items, list_kind
+        if not list_items or list_kind is None:
+            list_items = []
+            list_kind = None
+            return
+        tag = "ol" if list_kind == "ol" else "ul"
+        items = "".join(f"<li>{item}</li>" for item in list_items)
+        html_parts.append(f"<{tag}>{items}</{tag}>")
+        list_items = []
+        list_kind = None
+
+    def flush_code() -> None:
+        nonlocal code_lines
+        if not code_lines:
+            return
+        html_parts.append(f"<pre><code>{html_escape(chr(10).join(code_lines))}</code></pre>")
+        code_lines = []
+
+    for raw_line in markdown.splitlines():
+        stripped = raw_line.strip()
+
+        if stripped.startswith("```"):
+            flush_paragraph()
+            flush_list()
+            if in_code:
+                flush_code()
+                in_code = False
+            else:
+                in_code = True
+            continue
+
+        if in_code:
+            code_lines.append(raw_line)
+            continue
+
+        if not stripped:
+            flush_paragraph()
+            flush_list()
+            continue
+
+        heading = re.match(r"^(#{1,3})\s+(.*)$", stripped)
+        if heading:
+            flush_paragraph()
+            flush_list()
+            level = len(heading.group(1))
+            html_parts.append(f"<h{level}>{_inline_markdown_html(heading.group(2))}</h{level}>")
+            continue
+
+        ordered = re.match(r"^\d+\.\s+(.*)$", stripped)
+        bullet = re.match(r"^-\s+(.*)$", stripped)
+        if ordered or bullet:
+            flush_paragraph()
+            item_html = _inline_markdown_html((ordered or bullet).group(1))
+            next_kind = "ol" if ordered else "ul"
+            if list_kind not in (None, next_kind):
+                flush_list()
+            list_kind = next_kind
+            list_items.append(item_html)
+            continue
+
+        paragraph_lines.append(stripped)
+
+    flush_paragraph()
+    flush_list()
+    flush_code()
+    return "\n".join(html_parts)
+
+
+def _readme_path(config_path: str | None = None) -> Path:
+    _, paths = load_config(config_path)
+    return paths.root / "README.md"
+
+
+def _guide_html(config_path: str | None = None) -> str:
+    readme_path = _readme_path(config_path)
+    if readme_path.exists():
+        markdown = readme_path.read_text(encoding="utf-8")
+    else:
+        markdown = "# Guia\n\nREADME.md nao encontrado."
+    return GUIDE_HTML.replace("__GUIDE_CONTENT__", _markdown_to_html(markdown))
 
 
 def _latest_record_payload(record: dict[str, Any] | None) -> dict[str, Any] | None:
@@ -1328,6 +1669,9 @@ def _handler_factory(config_path: str | None = None):
             route = urlparse(self.path).path
             if route == "/":
                 self._send_html(UI_HTML)
+                return
+            if route == "/guia":
+                self._send_html(_guide_html(config_path))
                 return
             if route == "/api/ui":
                 self._send_json(_ui_payload(config_path))

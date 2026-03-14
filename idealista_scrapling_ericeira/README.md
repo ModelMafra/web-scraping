@@ -11,7 +11,7 @@ Projeto base para testar a biblioteca `scrapling` na recolha de anuncios da Idea
 - A Idealista devolveu uma pagina de proteção anti-bot num pedido HTTP simples, por isso o modo default ficou em `stealth`.
 - No teste real de `2026-03-13`, ate `StealthySession` com browser instalado continuou a receber `403` e HTML de `captcha-delivery`, portanto o proximo passo mais provavel e usar proxy residencial ou browser remoto.
 - O banner de cookies atual e gerido por Didomi, e o projeto tenta aceitá-lo automaticamente em modo browser.
-- Existe agora uma UI local 16:9, mais simples, com logs visiveis na propria pagina e botoes rapidos para `Sacar 1 pagina`, `Sacar tudo` e `Continuar pendentes`.
+- Existe agora uma UI local mais simples, com logs visiveis na propria pagina, uma pagina `Guia do projeto` dentro da app e botoes rapidos para `Sacar 1 pagina`, `Sacar tudo` e `Continuar pendentes`.
 
 ## Estrutura
 
@@ -121,6 +121,8 @@ Isto abre um frontend em `http://127.0.0.1:8765/`, grava a selecao em `config/ex
 - `Sacar 1 pagina`
 - `Sacar tudo`
 - `Continuar pendentes`
+
+No topo da UI existe tambem um botao `Abrir guia do projeto`, que mostra o conteudo do `README.md` dentro da propria app com um layout mais limpo.
 
 Descobrir anuncios:
 
