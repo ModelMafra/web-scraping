@@ -91,8 +91,10 @@
       display: grid;
       gap: 18px;
       background:
-        linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(236, 245, 249, 0.94)),
-        linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.5));
+        linear-gradient(145deg, rgba(24, 37, 43, 0.96), rgba(34, 54, 60, 0.98)),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0));
+      border-color: rgba(255, 255, 255, 0.06);
+      box-shadow: 0 24px 60px rgba(6, 17, 22, 0.36);
     }
 
     .eyebrow {
@@ -131,7 +133,7 @@
     .hero-copy h1 {
       font-size: clamp(34px, 4.4vw, 54px);
       line-height: 0.95;
-      max-width: 10ch;
+      max-width: 11ch;
     }
 
     .muted,
@@ -210,12 +212,38 @@
     }
 
     .hero-card {
-      background: linear-gradient(180deg, rgba(255, 255, 255, 0.8), rgba(248, 251, 253, 0.74));
-      border: 1px solid rgba(16, 34, 46, 0.08);
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+      border: 1px solid rgba(255, 255, 255, 0.06);
       border-radius: var(--radius-lg);
       padding: 18px;
       display: grid;
       gap: 14px;
+    }
+
+    .hero .eyebrow,
+    .hero .muted,
+    .hero .status-text,
+    .hero .helper,
+    .hero .section-title,
+    .hero .dataset-stat-label,
+    .hero .kpi-help {
+      color: rgba(232, 241, 244, 0.78);
+    }
+
+    .hero .hero-copy h1,
+    .hero .dataset-stat-value {
+      color: #f7fbfd;
+    }
+
+    .hero .pill {
+      background: rgba(255, 255, 255, 0.08);
+      color: #ecf6f8;
+      border-color: rgba(255, 255, 255, 0.08);
+    }
+
+    .hero .dataset-stat {
+      background: linear-gradient(180deg, rgba(10, 18, 23, 0.3), rgba(255, 255, 255, 0.05));
+      border-color: rgba(255, 255, 255, 0.06);
     }
 
     .pill-row,
@@ -246,7 +274,7 @@
 
     .mapping-panel {
       display: grid;
-      gap: 14px;
+      gap: 10px;
     }
 
     .mapping-header {
@@ -260,6 +288,14 @@
     .mapping-banner-copy {
       display: grid;
       gap: 4px;
+    }
+
+    .mapping-title {
+      font-size: 22px;
+    }
+
+    .mapping-help {
+      font-size: 13px;
     }
 
     .mapping-actions {
@@ -357,6 +393,25 @@
 
     .sidebar-panel {
       overflow: hidden;
+      background: linear-gradient(180deg, rgba(21, 32, 37, 0.95), rgba(28, 41, 46, 0.96));
+      border-color: rgba(255, 255, 255, 0.05);
+      box-shadow: 0 22px 52px rgba(7, 17, 21, 0.28);
+    }
+
+    .sidebar-panel .filter-title,
+    .sidebar-panel .helper,
+    .sidebar-panel .field-meta,
+    .sidebar-panel .option-item,
+    .sidebar-panel label,
+    .sidebar-panel h3,
+    .sidebar-panel strong {
+      color: #edf6f8;
+    }
+
+    .sidebar-panel .helper,
+    .sidebar-panel .field-meta,
+    .sidebar-panel .option-item small {
+      color: rgba(232, 241, 244, 0.68);
     }
 
     .sidebar-topbar {
@@ -416,9 +471,9 @@
     }
 
     .filter-card {
-      border: 1px solid rgba(16, 34, 46, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.06);
       border-radius: 18px;
-      background: rgba(248, 251, 253, 0.9);
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02));
       padding: 12px;
       display: grid;
       gap: 8px;
@@ -459,6 +514,32 @@
       background: rgba(255, 255, 255, 0.92);
       padding: 0 12px;
       outline: none;
+    }
+
+    .sidebar-panel .filter-search,
+    .sidebar-panel .range-number,
+    .sidebar-panel .date-input,
+    .sidebar-panel .multi-select details,
+    .sidebar-panel .multi-select-search {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.08);
+      color: #f7fbfd;
+    }
+
+    .sidebar-panel .filter-search::placeholder,
+    .sidebar-panel .multi-select-search::placeholder {
+      color: rgba(232, 241, 244, 0.5);
+    }
+
+    .sidebar-panel .multi-select summary {
+      color: #f7fbfd;
+    }
+
+    .sidebar-panel .badge,
+    .sidebar-panel .pill {
+      background: rgba(255, 255, 255, 0.08);
+      color: #edf6f8;
+      border-color: rgba(255, 255, 255, 0.08);
     }
 
     .dual-range {
@@ -686,6 +767,7 @@
       height: 100%;
       display: block;
       overflow: visible;
+      animation: chart-fade-in 180ms ease;
     }
 
     .lower-grid {
@@ -853,11 +935,13 @@
       display: grid;
       grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
       gap: 18px;
+      align-items: start;
     }
 
     .image-stage {
       display: grid;
       gap: 12px;
+      min-width: 0;
     }
 
     .hero-image {
@@ -911,16 +995,17 @@
     .detail-body {
       display: grid;
       gap: 16px;
+      min-width: 0;
     }
 
     .detail-title {
-      font-size: 30px;
+      font-size: clamp(28px, 2.6vw, 38px);
       line-height: 1.05;
     }
 
     .detail-kpi-strip {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
       gap: 12px;
     }
 
@@ -952,7 +1037,7 @@
     .dataset-stats-grid,
     .comparison-grid {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
       gap: 12px;
     }
 
@@ -1040,6 +1125,470 @@
       display: inline-block;
     }
 
+    .mapping-actions .pill,
+    .sidebar-summary .pill {
+      min-height: 26px;
+      padding: 0 10px;
+      font-size: 11px;
+    }
+
+    .section-title {
+      font-size: clamp(24px, 2.2vw, 32px);
+    }
+
+    .filter-title {
+      font-size: 28px;
+    }
+
+    @keyframes chart-fade-in {
+      from {
+        opacity: 0;
+        transform: translateY(4px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .control-ribbon {
+      position: sticky;
+      top: 18px;
+      z-index: 8;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(244, 248, 250, 0.94));
+    }
+
+    .ribbon-shell {
+      display: grid;
+      gap: 16px;
+    }
+
+    .ribbon-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .ribbon-title,
+    .drawer-title {
+      margin: 0;
+      font-family: var(--font-display);
+      letter-spacing: -0.03em;
+      color: var(--text-strong);
+    }
+
+    .ribbon-title {
+      font-size: 26px;
+    }
+
+    .drawer-title {
+      font-size: 20px;
+    }
+
+    .ribbon-actions,
+    .ribbon-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .ribbon-summary {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    .ribbon-body {
+      display: grid;
+      gap: 16px;
+    }
+
+    .ribbon-quick-grid {
+      display: grid;
+      grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
+      gap: 14px;
+      align-items: start;
+    }
+
+    .quick-search-card {
+      min-height: 100%;
+      align-content: start;
+    }
+
+    .quick-filter-grid,
+    .drawer-grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .quick-filter-grid {
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    }
+
+    .drawer-grid {
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+
+    .drawer-section {
+      display: grid;
+      gap: 14px;
+      border-top: 1px solid rgba(16, 34, 46, 0.08);
+      padding-top: 16px;
+    }
+
+    .drawer-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .analysis-stack {
+      display: grid;
+      gap: var(--spacing);
+    }
+
+    .charts-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .chart-card .helper {
+      max-width: 40ch;
+    }
+
+    .chart-host {
+      min-height: 286px;
+    }
+
+    .explorer-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.45fr) minmax(360px, 0.95fr);
+      gap: var(--spacing);
+      align-items: start;
+    }
+
+    .table-panel {
+      min-width: 0;
+    }
+
+    .filter-card-compact {
+      padding: 10px;
+      gap: 6px;
+      min-height: 100%;
+    }
+
+    .filter-card-compact h3 {
+      font-size: 13px;
+    }
+
+    .range-caption {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .table-shell {
+      border: 1px solid rgba(16, 34, 46, 0.08);
+      border-radius: 22px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(247, 250, 252, 0.95));
+      overflow: hidden;
+    }
+
+    .table-scroll {
+      max-height: 980px;
+      overflow: auto;
+    }
+
+    .listing-table {
+      width: max-content;
+      border-collapse: separate;
+      border-spacing: 0;
+      min-width: 1420px;
+    }
+
+    .listing-table col.col-annuncio {
+      width: 460px;
+    }
+
+    .listing-table col.col-price,
+    .listing-table col.col-area,
+    .listing-table col.col-price-m2 {
+      width: 170px;
+    }
+
+    .listing-table col.col-bedrooms,
+    .listing-table col.col-bathrooms,
+    .listing-table col.col-type {
+      width: 120px;
+    }
+
+    .listing-table col.col-location {
+      width: 190px;
+    }
+
+    .listing-table col.col-date {
+      width: 138px;
+    }
+
+    .listing-table col.col-relative {
+      width: 144px;
+    }
+
+    .listing-table thead th {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      padding: 14px 12px;
+      background: rgba(246, 250, 252, 0.98);
+      border-bottom: 1px solid rgba(16, 34, 46, 0.08);
+      text-align: left;
+    }
+
+    .listing-table tbody td {
+      padding: 14px 12px;
+      border-bottom: 1px solid rgba(16, 34, 46, 0.06);
+      vertical-align: top;
+    }
+
+    .table-head-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0;
+      border: 0;
+      background: none;
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .table-head-button.is-active {
+      color: var(--accent-deep);
+    }
+
+    .sort-arrow {
+      font-size: 11px;
+      opacity: 0.72;
+    }
+
+    .table-row {
+      cursor: pointer;
+      transition: background var(--transition), box-shadow var(--transition);
+    }
+
+    .table-row:hover {
+      background: rgba(15, 91, 120, 0.05);
+    }
+
+    .table-row.is-selected {
+      background: rgba(203, 106, 56, 0.08);
+      box-shadow: inset 3px 0 0 rgba(203, 106, 56, 0.9);
+    }
+
+    .listing-cell {
+      display: grid;
+      grid-template-columns: 72px minmax(240px, 1fr);
+      gap: 12px;
+      align-items: start;
+      min-width: 0;
+    }
+
+    .listing-mini-thumb {
+      width: 72px;
+      height: 64px;
+      border-radius: 16px;
+      overflow: hidden;
+      background: linear-gradient(135deg, rgba(15, 91, 120, 0.12), rgba(15, 91, 120, 0.04));
+      display: grid;
+      place-items: center;
+      color: var(--muted);
+      font-size: 11px;
+      text-align: center;
+    }
+
+    .listing-mini-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .listing-main {
+      display: grid;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .listing-main-title {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.22;
+      font-weight: 800;
+      color: var(--text-strong);
+    }
+
+    .listing-main-meta {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .value-stack {
+      display: grid;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .value-primary {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--text-strong);
+      white-space: nowrap;
+    }
+
+    .value-stack.is-truncate .value-primary {
+      display: block;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .value-stack.is-wrap .value-primary {
+      white-space: normal;
+      overflow-wrap: anywhere;
+    }
+
+    .value-secondary {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .indicator-chip,
+    .relative-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 26px;
+      padding: 0 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(16, 34, 46, 0.08);
+      font-size: 11px;
+      font-weight: 800;
+      width: fit-content;
+    }
+
+    .indicator-chip.is-up,
+    .relative-pill.is-up {
+      background: rgba(203, 106, 56, 0.12);
+      color: #9a4d27;
+      border-color: rgba(203, 106, 56, 0.2);
+    }
+
+    .indicator-chip.is-down,
+    .relative-pill.is-down {
+      background: rgba(15, 91, 120, 0.1);
+      color: #0f5b78;
+      border-color: rgba(15, 91, 120, 0.16);
+    }
+
+    .indicator-chip.is-flat,
+    .relative-pill.is-flat {
+      background: rgba(16, 34, 46, 0.06);
+      color: #4b5e68;
+      border-color: rgba(16, 34, 46, 0.08);
+    }
+
+    .metric-card {
+      gap: 8px;
+    }
+
+    .metric-trend {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--muted);
+    }
+
+    .detail-panel-shell {
+      position: sticky;
+      top: 156px;
+      max-height: calc(100vh - 176px);
+      overflow: auto;
+    }
+
+    .detail-panel-shell .panel-body {
+      display: grid;
+      gap: 18px;
+    }
+
+    .percentile-stack {
+      display: grid;
+      gap: 12px;
+      padding: 4px;
+    }
+
+    .percentile-row {
+      display: grid;
+      gap: 8px;
+    }
+
+    .percentile-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .percentile-track {
+      position: relative;
+      height: 18px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, rgba(15, 91, 120, 0.12), rgba(15, 91, 120, 0.04));
+      overflow: hidden;
+    }
+
+    .percentile-midline {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 50%;
+      width: 2px;
+      background: rgba(16, 34, 46, 0.18);
+    }
+
+    .percentile-marker {
+      position: absolute;
+      top: 50%;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #cb5b2b;
+      border: 2px solid #fff;
+      transform: translate(-50%, -50%);
+      box-shadow: 0 4px 10px rgba(203, 91, 43, 0.28);
+    }
+
+    .heatmap-wrap {
+      width: 100%;
+      height: 100%;
+    }
+
     .tooltip {
       position: fixed;
       z-index: 20;
@@ -1073,6 +1622,11 @@
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
 
+      .explorer-grid,
+      .ribbon-quick-grid {
+        grid-template-columns: 1fr;
+      }
+
       .detail-metadata-grid,
       .dataset-stats-grid,
       .comparison-grid {
@@ -1093,6 +1647,12 @@
 
       .sidebar {
         position: static;
+      }
+
+      .detail-panel-shell,
+      .control-ribbon {
+        position: static;
+        max-height: none;
       }
     }
 
@@ -1117,17 +1677,23 @@
         grid-template-columns: 1fr;
       }
 
+      .quick-filter-grid,
+      .drawer-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .ribbon-actions,
+      .ribbon-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .listing-table {
+        min-width: 980px;
+      }
+
       .chart-title {
         font-size: 30px;
-      }
-
-      .listing-card {
-        grid-template-columns: 96px minmax(0, 1fr);
-      }
-
-      .listing-thumb {
-        width: 96px;
-        height: 88px;
       }
     }
   </style>
@@ -1135,14 +1701,14 @@
 <body>
   <div class="app-shell">
     <header class="panel hero">
-      <p class="eyebrow">Portable Dashboard</p>
+      <p class="eyebrow">Estate Lens</p>
       <div class="hero-grid">
         <div class="hero-copy">
-          <h1>Explora imóveis com upload local e D3</h1>
+          <h1>Análise de imóveis com foco analítico e upload local</h1>
           <p class="muted">
             Este dashboard corre inteiro dentro deste ficheiro. Faz upload de um
             <strong>CSV</strong>, <strong>JSON</strong> ou <strong>JSONL</strong>,
-            revê o mapeamento dos campos e trabalha os dados sem servidor.
+            revê o mapeamento dos campos e explora o dataset num painel analítico sem servidor.
           </p>
           <div class="hero-actions">
             <label class="upload-button">
@@ -1157,14 +1723,11 @@
           </p>
           <div id="hero-pills" class="hero-pills"></div>
         </div>
-        <div class="hero-card">
-          <div class="panel-header-copy">
-            <h2 class="section-title">O que faz</h2>
-            <p class="helper">
-              Inspeciona colunas automaticamente, deixa mapear semânticas de imobiliário,
-              cria filtros por tipo de dado e compara qualquer anúncio com o subconjunto filtrado.
-            </p>
-          </div>
+          <div class="hero-card">
+            <div class="panel-header-copy">
+            <h2 class="section-title">Estado do dataset</h2>
+            <p class="helper">Linhas, colunas e tipos detetados assim que o ficheiro entra no browser.</p>
+            </div>
           <div id="dataset-stats-grid" class="dataset-stats-grid">
             <div class="dataset-stat">
               <div class="dataset-stat-label">Linhas</div>
@@ -1186,170 +1749,234 @@
       </div>
     </header>
 
-    <section id="mapping-panel" class="panel hidden">
-      <div class="panel-body mapping-panel">
-        <div class="mapping-header">
-          <div class="mapping-banner-copy">
-            <p class="eyebrow">Schema</p>
-            <h2 class="mapping-title">Mapeamento de campos</h2>
-            <p class="mapping-help">Opcional. Revê só se a deteção automática não estiver alinhada.</p>
+    <section id="control-ribbon" class="panel control-ribbon">
+      <div class="panel-body ribbon-shell">
+        <div class="ribbon-head">
+          <div class="panel-header-copy">
+            <p class="eyebrow">Control center</p>
+            <h2 class="ribbon-title">Filtros, pesquisa e mapeamento</h2>
+            <p class="helper">Painel horizontal, recolhível e pensado para análise sem desperdício de espaço.</p>
           </div>
-          <div class="mapping-actions">
-            <div id="mapping-summary" class="pill-row"></div>
-            <button id="toggle-mapping-btn" class="button button-secondary button-icon" type="button">Mostrar</button>
+          <div class="ribbon-actions">
+            <div id="filter-summary" class="ribbon-summary"></div>
+            <button id="toggle-ribbon-btn" class="button button-secondary" type="button">Esconder painel</button>
           </div>
         </div>
-        <div id="mapping-body" class="mapping-body hidden">
-          <div id="mapping-grid" class="mapping-grid"></div>
+
+        <div id="ribbon-body" class="ribbon-body">
+          <div class="ribbon-quick-grid">
+            <div class="filter-card quick-search-card">
+              <label for="global-search"><strong>Pesquisa global</strong></label>
+              <input id="global-search" class="filter-search" type="search" placeholder="Título, ID, zona, tipo, descrição...">
+              <p class="field-meta">Pesquisa nos principais campos textuais e nos mapeamentos ativos.</p>
+            </div>
+            <div id="quick-filter-groups" class="quick-filter-grid">
+              <div class="empty-state">Carrega um dataset para gerar filtros rápidos.</div>
+            </div>
+          </div>
+
+          <div class="ribbon-toolbar">
+            <button id="focus-selected-btn" class="button button-secondary" type="button">Voltar ao selecionado</button>
+            <button id="clear-selection-btn" class="button button-danger" type="button">Limpar seleção</button>
+            <button id="toggle-advanced-btn" class="button button-ghost" type="button">Filtros avançados</button>
+            <button id="toggle-mapping-btn" class="button button-secondary" type="button">Schema / mapeamento</button>
+          </div>
+
+          <section id="advanced-filters-body" class="drawer-section hidden">
+            <div class="drawer-header">
+              <div class="panel-header-copy">
+                <p class="eyebrow">Advanced</p>
+                <h3 class="drawer-title">Filtros avançados</h3>
+              </div>
+            </div>
+            <div id="advanced-filter-groups" class="drawer-grid">
+              <div class="empty-state">Sem filtros avançados disponíveis.</div>
+            </div>
+          </section>
+
+          <section id="mapping-panel" class="drawer-section hidden">
+            <div class="mapping-panel">
+              <div class="mapping-header">
+                <div class="mapping-banner-copy">
+                  <p class="eyebrow">Schema</p>
+                  <h2 class="mapping-title">Mapeamento de campos</h2>
+                  <p class="mapping-help">Opcional. Revê apenas se a deteção automática falhar.</p>
+                </div>
+                <div class="mapping-actions">
+                  <div id="mapping-summary" class="pill-row"></div>
+                </div>
+              </div>
+              <div id="mapping-body" class="mapping-body">
+                <div id="mapping-grid" class="mapping-grid"></div>
+              </div>
+            </div>
+          </section>
         </div>
       </div>
     </section>
 
-    <section id="dashboard-layout" class="dashboard-layout">
-      <aside id="sidebar" class="sidebar">
-        <section class="panel sidebar-panel">
-          <div class="panel-body sidebar-section">
-            <div class="sidebar-topbar">
-              <div class="panel-header-copy">
-                <h2 class="filter-title">Painel analítico</h2>
-                <p class="helper">Pesquisa, filtros e ações rápidas do dashboard.</p>
-              </div>
-              <button id="toggle-filters-btn" class="button button-secondary button-icon" type="button">Ocultar</button>
+    <main class="analysis-stack">
+      <section class="panel">
+        <div class="panel-body">
+          <div class="panel-header">
+            <div class="panel-header-copy">
+              <h2 class="section-title">Market snapshot</h2>
+              <p class="helper">Resumo imediato do subconjunto filtrado e dos campos mais relevantes.</p>
             </div>
-            <div id="filter-summary" class="sidebar-summary"></div>
-            <div id="filters-body" class="sidebar-content">
-              <div class="search-block">
-                <label for="global-search"><strong>Pesquisa global</strong></label>
-                <input id="global-search" class="filter-search" type="search" placeholder="Título, ID, zona, tipo, descrição...">
-                <p class="field-meta">Pesquisa nos principais campos textuais e nos mapeamentos ativos.</p>
-              </div>
-              <div class="filter-actions">
-                <button id="focus-selected-btn" class="button button-secondary" type="button">Voltar ao selecionado</button>
-                <button id="clear-selection-btn" class="button button-danger" type="button">Limpar seleção</button>
-              </div>
-              <div id="filter-groups" class="filter-groups">
-                <div class="empty-state">Carrega um dataset para gerar filtros.</div>
-              </div>
+            <div id="filtered-count-badge" class="badge">0 anúncios</div>
+          </div>
+          <div id="metrics-grid" class="metrics-grid">
+            <div class="metric-card">
+              <div class="metric-label">Total</div>
+              <div class="metric-value">0</div>
+              <div class="kpi-help">Carrega um dataset.</div>
             </div>
           </div>
-        </section>
-      </aside>
+        </div>
+      </section>
 
-      <main class="content">
-        <section class="panel">
+      <section class="charts-grid">
+        <article class="panel">
+          <div class="panel-body chart-card">
+            <div class="chart-header">
+              <div class="panel-header-copy">
+                <h2 class="chart-title">Distribuição</h2>
+                <p class="helper">Histograma do campo numérico escolhido.</p>
+              </div>
+              <div class="chart-controls">
+                <select id="hist-field-select" class="chart-select"></select>
+              </div>
+            </div>
+            <div class="legend">
+              <span><i class="legend-dot" style="background:#6aa6ae"></i> Conjunto filtrado</span>
+              <span><i class="legend-dot" style="background:#cb5b2b"></i> Anúncio selecionado</span>
+            </div>
+            <div id="hist-chart" class="chart-host"></div>
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-body chart-card">
+            <div class="chart-header">
+              <div class="panel-header-copy">
+                <h2 class="chart-title">Categorias</h2>
+                <p class="helper">Barras automáticas para o campo categórico escolhido.</p>
+              </div>
+              <div class="chart-controls">
+                <select id="category-field-select" class="chart-select"></select>
+              </div>
+            </div>
+            <div class="legend">
+              <span><i class="legend-dot" style="background:#0f6b72"></i> Contagem</span>
+              <span><i class="legend-dot" style="background:#cb5b2b"></i> Categoria do selecionado</span>
+            </div>
+            <div id="bar-chart" class="chart-host"></div>
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-body chart-card">
+            <div class="chart-header">
+              <div class="panel-header-copy">
+                <h2 class="chart-title">Relação</h2>
+                <p class="helper">Scatter com tendência. Clicar num ponto seleciona o anúncio.</p>
+              </div>
+              <div class="chart-controls">
+                <select id="scatter-x-select" class="chart-select"></select>
+                <select id="scatter-y-select" class="chart-select"></select>
+              </div>
+            </div>
+            <div class="legend">
+              <span><i class="legend-dot" style="background:#6aa6ae"></i> Restantes anúncios</span>
+              <span><i class="legend-dot" style="background:#cb5b2b"></i> Selecionado</span>
+            </div>
+            <div id="scatter-chart" class="chart-host"></div>
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-body chart-card">
+            <div class="chart-header">
+              <div class="panel-header-copy">
+                <h2 class="chart-title">Boxplot</h2>
+                <p class="helper">Distribuição compacta com mediana, quartis e marcador do anúncio.</p>
+              </div>
+              <div class="chart-controls">
+                <select id="boxplot-field-select" class="chart-select"></select>
+              </div>
+            </div>
+            <div class="legend">
+              <span><i class="legend-dot" style="background:#0f6b72"></i> Distribuição</span>
+              <span><i class="legend-dot" style="background:#cb5b2b"></i> Selecionado</span>
+            </div>
+            <div id="boxplot-chart" class="chart-host"></div>
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-body chart-card">
+            <div class="chart-header">
+              <div class="panel-header-copy">
+                <h2 class="chart-title">Correlação</h2>
+                <p class="helper">Heatmap entre campos numéricos detetados no dataset.</p>
+              </div>
+            </div>
+            <div class="legend">
+              <span><i class="legend-dot" style="background:#0f6b72"></i> Positiva</span>
+              <span><i class="legend-dot" style="background:#f0ede8"></i> Neutra</span>
+              <span><i class="legend-dot" style="background:#cb5b2b"></i> Negativa</span>
+            </div>
+            <div id="heatmap-chart" class="chart-host"></div>
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-body chart-card">
+            <div class="chart-header">
+              <div class="panel-header-copy">
+                <h2 class="chart-title">Posição do selecionado</h2>
+                <p class="helper">Percentis e posição relativa do anúncio nas distribuições principais.</p>
+              </div>
+            </div>
+            <div id="percentile-chart" class="chart-host"></div>
+          </div>
+        </article>
+      </section>
+
+      <section class="explorer-grid">
+        <article class="panel table-panel">
+          <div class="panel-body listing-panel">
+            <div class="panel-header">
+              <div class="panel-header-copy">
+                <h2 class="section-title">Tabela analítica</h2>
+                <p class="helper">Resumo de todos os anúncios filtrados com ordenação e indicadores relativos.</p>
+              </div>
+              <div id="listing-summary" class="badge">Sem dados</div>
+            </div>
+            <div id="listing-list" class="table-shell">
+              <div class="empty-state">Carrega um dataset para ver a tabela analítica.</div>
+            </div>
+          </div>
+        </article>
+
+        <article class="panel detail-panel-shell">
           <div class="panel-body">
             <div class="panel-header">
               <div class="panel-header-copy">
-                <h2 class="section-title">Métricas-chave</h2>
-                <p class="helper">Resumo do subconjunto filtrado no momento.</p>
+                <h2 class="section-title">Detalhe e comparação</h2>
+                <p class="helper">
+                  O anúncio selecionado é comparado com o resto do conjunto filtrado.
+                </p>
               </div>
-              <div id="filtered-count-badge" class="badge">0 anúncios</div>
+              <div id="selection-badge" class="badge">Sem seleção</div>
             </div>
-            <div id="metrics-grid" class="metrics-grid">
-              <div class="metric-card">
-                <div class="metric-label">Total</div>
-                <div class="metric-value">0</div>
-                <div class="kpi-help">Carrega um dataset.</div>
-              </div>
+            <div id="detail-panel" class="detail-empty">
+              Seleciona um anúncio na tabela ou no scatter para abrir detalhe, imagens e comparação.
             </div>
           </div>
-        </section>
-
-        <section class="charts-grid">
-          <article class="panel">
-            <div class="panel-body chart-card">
-              <div class="chart-header">
-                <div class="panel-header-copy">
-                  <h2 class="chart-title">Distribuição</h2>
-                  <p class="helper">Histograma do campo numérico escolhido.</p>
-                </div>
-                <div class="chart-controls">
-                  <select id="hist-field-select" class="chart-select"></select>
-                </div>
-              </div>
-              <div class="legend">
-                <span><i class="legend-dot" style="background:#6aa6ae"></i> Conjunto filtrado</span>
-                <span><i class="legend-dot" style="background:#cb5b2b"></i> Anúncio selecionado</span>
-              </div>
-              <div id="hist-chart" class="chart-host"></div>
-            </div>
-          </article>
-
-          <article class="panel">
-            <div class="panel-body chart-card">
-              <div class="chart-header">
-                <div class="panel-header-copy">
-                  <h2 class="chart-title">Categorias</h2>
-                  <p class="helper">Barras automáticas para o campo categórico escolhido.</p>
-                </div>
-                <div class="chart-controls">
-                  <select id="category-field-select" class="chart-select"></select>
-                </div>
-              </div>
-              <div class="legend">
-                <span><i class="legend-dot" style="background:#0f6b72"></i> Contagem</span>
-                <span><i class="legend-dot" style="background:#cb5b2b"></i> Categoria do selecionado</span>
-              </div>
-              <div id="bar-chart" class="chart-host"></div>
-            </div>
-          </article>
-
-          <article class="panel">
-            <div class="panel-body chart-card">
-              <div class="chart-header">
-                <div class="panel-header-copy">
-                  <h2 class="chart-title">Relação</h2>
-                  <p class="helper">Scatter com tendência. Clicar num ponto seleciona o anúncio.</p>
-                </div>
-                <div class="chart-controls">
-                  <select id="scatter-x-select" class="chart-select"></select>
-                  <select id="scatter-y-select" class="chart-select"></select>
-                </div>
-              </div>
-              <div class="legend">
-                <span><i class="legend-dot" style="background:#6aa6ae"></i> Restantes anúncios</span>
-                <span><i class="legend-dot" style="background:#cb5b2b"></i> Selecionado</span>
-              </div>
-              <div id="scatter-chart" class="chart-host"></div>
-            </div>
-          </article>
-        </section>
-
-        <section class="lower-grid">
-          <article class="panel">
-            <div class="panel-body listing-panel">
-              <div class="panel-header">
-                <div class="panel-header-copy">
-                  <h2 class="section-title">Explorador de anúncios</h2>
-                  <p class="helper">Lista scrollável com cartões do subconjunto atual.</p>
-                </div>
-                <div id="listing-summary" class="badge">Sem dados</div>
-              </div>
-              <div id="listing-list" class="listing-list">
-                <div class="empty-state">Carrega um dataset para veres os cartões.</div>
-              </div>
-            </div>
-          </article>
-
-          <article class="panel">
-            <div class="panel-body detail-panel-shell">
-              <div class="panel-header">
-                <div class="panel-header-copy">
-                  <h2 class="section-title">Detalhe e comparação</h2>
-                  <p class="helper">
-                    O anúncio selecionado é comparado com o resto do conjunto filtrado.
-                  </p>
-                </div>
-                <div id="selection-badge" class="badge">Sem seleção</div>
-              </div>
-              <div id="detail-panel" class="detail-empty">
-                Seleciona um anúncio na lista ou no scatter para abrir detalhe, imagens e comparação.
-              </div>
-            </div>
-          </article>
-        </section>
-      </main>
-    </section>
+        </article>
+      </section>
+    </main>
   </div>
 
   <div id="tooltip" class="tooltip"></div>
@@ -1453,6 +2080,13 @@
     const FIELD_PRIORITY = ["price", "area", "pricePerM2", "bedrooms", "bathrooms"];
     const MAX_CATEGORY_OPTIONS = 40;
     const MAX_BAR_CATEGORIES = 10;
+    const QUICK_FILTER_IDS = new Set([
+      "semantic:price",
+      "semantic:area",
+      "semantic:bedrooms",
+      "semantic:location",
+      "semantic:propertyType"
+    ]);
 
     const state = {
       fileName: "",
@@ -1470,7 +2104,17 @@
         histogramField: "",
         categoryField: "",
         scatterX: "",
-        scatterY: ""
+        scatterY: "",
+        boxplotField: ""
+      },
+      ui: {
+        controlRibbonCollapsed: false,
+        mappingCollapsed: true,
+        advancedFiltersOpen: false,
+        tableSort: {
+          key: "price",
+          direction: "desc"
+        }
       }
     };
 
@@ -1483,20 +2127,33 @@
       datasetStatus: document.getElementById("dataset-status"),
       heroPills: document.getElementById("hero-pills"),
       datasetStatsGrid: document.getElementById("dataset-stats-grid"),
+      controlRibbon: document.getElementById("control-ribbon"),
+      ribbonBody: document.getElementById("ribbon-body"),
       mappingPanel: document.getElementById("mapping-panel"),
+      mappingBody: document.getElementById("mapping-body"),
       mappingGrid: document.getElementById("mapping-grid"),
       mappingSummary: document.getElementById("mapping-summary"),
+      toggleMappingBtn: document.getElementById("toggle-mapping-btn"),
       globalSearch: document.getElementById("global-search"),
-      filterGroups: document.getElementById("filter-groups"),
+      toggleRibbonBtn: document.getElementById("toggle-ribbon-btn"),
+      toggleAdvancedBtn: document.getElementById("toggle-advanced-btn"),
+      filterSummary: document.getElementById("filter-summary"),
+      quickFilterGroups: document.getElementById("quick-filter-groups"),
+      advancedFiltersBody: document.getElementById("advanced-filters-body"),
+      advancedFilterGroups: document.getElementById("advanced-filter-groups"),
       metricsGrid: document.getElementById("metrics-grid"),
       filteredCountBadge: document.getElementById("filtered-count-badge"),
       histFieldSelect: document.getElementById("hist-field-select"),
       categoryFieldSelect: document.getElementById("category-field-select"),
       scatterXSelect: document.getElementById("scatter-x-select"),
       scatterYSelect: document.getElementById("scatter-y-select"),
+      boxplotFieldSelect: document.getElementById("boxplot-field-select"),
       histChart: document.getElementById("hist-chart"),
       barChart: document.getElementById("bar-chart"),
       scatterChart: document.getElementById("scatter-chart"),
+      boxplotChart: document.getElementById("boxplot-chart"),
+      heatmapChart: document.getElementById("heatmap-chart"),
+      percentileChart: document.getElementById("percentile-chart"),
       listingSummary: document.getElementById("listing-summary"),
       listingList: document.getElementById("listing-list"),
       detailPanel: document.getElementById("detail-panel"),
@@ -1655,6 +2312,13 @@
       }).format(value);
     }
 
+    function formatPricePerM2(value, digits = 0) {
+      if (value === null || value === undefined || Number.isNaN(value)) {
+        return "—";
+      }
+      return `${formatCurrency(value, digits)} / m²`;
+    }
+
     function formatDate(value) {
       if (!(value instanceof Date) || Number.isNaN(value.getTime())) {
         return "—";
@@ -1671,6 +2335,9 @@
       if (field.type === "date") {
         return formatDate(value);
       }
+      if (field.semanticKey === "pricePerM2") {
+        return formatPricePerM2(value);
+      }
       if (field.format === "currency") {
         return formatCurrency(value);
       }
@@ -1681,6 +2348,19 @@
         return formatNumber(value, value % 1 ? 1 : 0);
       }
       return valueToText(value) || "—";
+    }
+
+    function formatCompactFilterValue(definition, value) {
+      if (definition.type === "date") {
+        return value || "—";
+      }
+      if (definition.format === "currency") {
+        return formatCurrency(Number(value));
+      }
+      if (definition.format === "area") {
+        return Number.isFinite(Number(value)) ? `${formatNumber(Number(value), Number(value) % 1 ? 1 : 0)} m²` : "—";
+      }
+      return Number.isFinite(Number(value)) ? formatNumber(Number(value), Number(value) % 1 ? 1 : 0) : "—";
     }
 
     function clamp(value, min, max) {
@@ -1732,6 +2412,45 @@
 
     function hideTooltip() {
       refs.tooltip.classList.remove("is-visible");
+    }
+
+    function isFilterActive(definition, currentValue) {
+      if (!definition) {
+        return false;
+      }
+      const value = currentValue ?? definition.defaultValue;
+      if (definition.type === "numeric") {
+        return Math.abs(value[0] - definition.defaultValue[0]) > 1e-9 || Math.abs(value[1] - definition.defaultValue[1]) > 1e-9;
+      }
+      if (definition.type === "date") {
+        return value[0] !== definition.defaultValue[0] || value[1] !== definition.defaultValue[1];
+      }
+      return Array.isArray(value) && value.length > 0;
+    }
+
+    function countActiveFilters() {
+      let total = (state.filters.searchText || "").trim() ? 1 : 0;
+      state.filterDefinitions.forEach((definition) => {
+        if (isFilterActive(definition, state.filters.values[definition.id])) {
+          total += 1;
+        }
+      });
+      return total;
+    }
+
+    function syncChromeState() {
+      const ribbonCollapsed = Boolean(state.ui.controlRibbonCollapsed);
+      const mappingCollapsed = Boolean(state.ui.mappingCollapsed) || !state.schema.length;
+      const advancedCollapsed = ribbonCollapsed || !state.ui.advancedFiltersOpen || !getAdvancedFilterDefinitions().length;
+
+      refs.controlRibbon.classList.toggle("is-collapsed", ribbonCollapsed);
+      refs.ribbonBody.classList.toggle("hidden", ribbonCollapsed);
+      refs.advancedFiltersBody.classList.toggle("hidden", advancedCollapsed);
+      refs.mappingPanel.classList.toggle("hidden", ribbonCollapsed || mappingCollapsed);
+
+      refs.toggleRibbonBtn.textContent = ribbonCollapsed ? "Abrir painel" : "Esconder painel";
+      refs.toggleAdvancedBtn.textContent = state.ui.advancedFiltersOpen ? "Esconder avançados" : "Filtros avançados";
+      refs.toggleMappingBtn.textContent = mappingCollapsed ? "Schema / mapeamento" : "Fechar schema";
     }
 
     // ---------- Deteção de schema ----------
@@ -1869,6 +2588,123 @@
       return match ? Number(match[1]) : null;
     }
 
+    function getFeatureTexts(rawRow) {
+      const candidates = [
+        rawRow.feature_list,
+        rawRow.features,
+        rawRow.characteristics,
+        rawRow.highlights
+      ];
+      const featureValue = candidates.find((candidate) => !isMissing(candidate));
+      if (Array.isArray(featureValue)) {
+        return featureValue.map(valueToText).filter(Boolean);
+      }
+      const text = valueToText(featureValue);
+      if (!text) {
+        return [];
+      }
+      return text
+        .split(/[\n|;]+/)
+        .map((item) => item.trim())
+        .filter(Boolean);
+    }
+
+    function extractBestArea(rawRow) {
+      const featureTexts = getFeatureTexts(rawRow);
+      const fallbackTexts = [
+        ...featureTexts,
+        valueToText(rawRow.description || rawRow.descricao || rawRow.summary),
+        valueToText(rawRow.title || rawRow.name || rawRow.headline)
+      ].filter(Boolean);
+      const candidates = [];
+
+      fallbackTexts.forEach((text) => {
+        const matches = text.matchAll(/(\d+(?:[.,]\d+)?)\s*m²/gi);
+        for (const match of matches) {
+          const value = parseLocaleNumber(match[1]);
+          if (!Number.isFinite(value)) {
+            continue;
+          }
+          const index = match.index || 0;
+          const context = text.slice(Math.max(0, index - 24), Math.min(text.length, index + 40)).toLowerCase();
+          let score = 0;
+          if (/area bruta|área bruta|brutos|bruta/.test(context)) {
+            score += 6;
+          }
+          if (/uteis|úteis|util|útil/.test(context)) {
+            score += 4;
+          }
+          if (/constru/i.test(context)) {
+            score += 3;
+          }
+          if (/lote|terreno|parcela/.test(context)) {
+            score -= 8;
+          }
+          candidates.push({ value, score });
+        }
+      });
+
+      if (!candidates.length) {
+        return null;
+      }
+
+      candidates.sort((left, right) => right.score - left.score || right.value - left.value);
+      const best = candidates.find((candidate) => candidate.score > -2) || candidates[0];
+      return best ? best.value : null;
+    }
+
+    function extractFirstParsed(texts, parser) {
+      for (const text of texts) {
+        const value = parser(text);
+        if (value !== null && value !== undefined && Number.isFinite(value)) {
+          return value;
+        }
+      }
+      return null;
+    }
+
+    function isGenericPropertyType(value) {
+      return /^(sale|rent|comprar|alugar|arrendar|venda)$/i.test(valueToText(value));
+    }
+
+    function derivePropertyType(rawRow, currentValue) {
+      const currentText = valueToText(currentValue);
+      if (currentText && !isGenericPropertyType(currentText)) {
+        return currentText;
+      }
+
+      const sourceTexts = [
+        ...getFeatureTexts(rawRow),
+        valueToText(rawRow.title || rawRow.name || rawRow.headline),
+        valueToText(rawRow.description || rawRow.descricao || rawRow.summary),
+        valueToText(rawRow.property_type || rawRow.tipo || rawRow.category)
+      ].filter(Boolean);
+
+      const patterns = [
+        [/moradia independente/i, "Moradia independente"],
+        [/moradia geminada/i, "Moradia geminada"],
+        [/moradia em banda/i, "Moradia em banda"],
+        [/apartamento/i, "Apartamento"],
+        [/moradia|casa/i, "Moradia"],
+        [/est[uú]dio|studio/i, "Estudio"],
+        [/duplex/i, "Duplex"],
+        [/penthouse|[aá]tico/i, "Penthouse"],
+        [/terreno|lote/i, "Terreno"],
+        [/loja|shop|store/i, "Loja"],
+        [/garagem|garage/i, "Garagem"]
+      ];
+
+      for (const text of sourceTexts) {
+        for (const [pattern, label] of patterns) {
+          if (pattern.test(text)) {
+            return label;
+          }
+        }
+      }
+
+      return currentText || "—";
+    }
+
     function dedupeImages(images) {
       const seen = new Set();
       const result = [];
@@ -1956,6 +2792,49 @@
           }
         });
 
+        const featureTexts = getFeatureTexts(rawRow);
+        const fallbackTexts = [
+          ...featureTexts,
+          valueToText(rawRow.title || rawRow.name || rawRow.headline),
+          valueToText(rawRow.description || rawRow.descricao || rawRow.summary)
+        ].filter(Boolean);
+
+        if (semantics.price === null || semantics.price === undefined) {
+          semantics.price = parseLocaleNumber(
+            rawRow.price_amount_eur ??
+            rawRow.price ??
+            rawRow.preco ??
+            rawRow.valor ??
+            rawRow.price_text
+          );
+        }
+
+        if (semantics.area === null || semantics.area === undefined) {
+          semantics.area = extractBestArea(rawRow);
+        }
+
+        if (semantics.bedrooms === null || semantics.bedrooms === undefined) {
+          semantics.bedrooms = extractFirstParsed(fallbackTexts, parseRoomCount);
+        }
+
+        if (semantics.bathrooms === null || semantics.bathrooms === undefined) {
+          semantics.bathrooms = extractFirstParsed(fallbackTexts, parseBathroomCount);
+        }
+
+        if (!semantics.location) {
+          semantics.location = valueToText(rawRow.address || rawRow.city || rawRow.location || rawRow.zone || rawRow.zona);
+        }
+
+        semantics.propertyType = derivePropertyType(rawRow, semantics.propertyType || rawRow.property_type || rawRow.tipo || rawRow.category);
+
+        if ((!semantics.images || !semantics.images.length) && !isMissing(rawRow.preview_image_url)) {
+          semantics.images = extractImages([rawRow.preview_image_url].concat(rawRow.images || []));
+        }
+
+        if ((semantics.pricePerM2 === null || semantics.pricePerM2 === undefined) && rawRow.price_per_m2 !== undefined) {
+          semantics.pricePerM2 = parseLocaleNumber(rawRow.price_per_m2);
+        }
+
         if ((semantics.pricePerM2 === null || semantics.pricePerM2 === undefined) && semantics.price && semantics.area) {
           const derived = semantics.area > 0 ? semantics.price / semantics.area : null;
           semantics.pricePerM2 = Number.isFinite(derived) ? derived : null;
@@ -2000,6 +2879,7 @@
     function buildFieldCatalog(rows, schema, mapping) {
       const usedColumns = new Set(Object.values(mapping).filter(Boolean));
       const descriptors = [];
+      const noisyChartColumnPattern = /(price_text|_text$|^text_|description|summary|headline|title|name$|listing_id|^id$|_id$|uid|url|href|link|image|images|photo|thumb|thumbnail|html|snapshot|sha|hash|token|search|query)/;
 
       const semanticDefinitions = {
         price: { label: "Preço", type: "numeric", format: "currency" },
@@ -2028,7 +2908,8 @@
           type: definition.type,
           format: definition.format,
           getValue: (row) => row.semantics[key],
-          semanticKey: key
+          semanticKey: key,
+          chartEligible: !["title", "description", "listingId", "listingUrl", "images", "date"].includes(key)
         });
       });
 
@@ -2045,7 +2926,10 @@
           type: column.type,
           format: inferFormatFromName(column.name, column.type),
           getValue: (row) => row.rawValues[column.name],
-          rawColumn: column.name
+          rawColumn: column.name,
+          chartEligible: ["numeric", "categorical"].includes(column.type)
+            && !noisyChartColumnPattern.test(column.normalizedName)
+            && !(column.type === "categorical" && column.uniqueCount > MAX_BAR_CATEGORIES * 2)
         });
       });
 
@@ -2073,6 +2957,14 @@
     function getFieldValue(row, fieldIdOrDescriptor) {
       const descriptor = typeof fieldIdOrDescriptor === "string" ? getFieldById(fieldIdOrDescriptor) : fieldIdOrDescriptor;
       return descriptor ? descriptor.getValue(row) : null;
+    }
+
+    function getQuickFilterDefinitions() {
+      return state.filterDefinitions.filter((definition) => QUICK_FILTER_IDS.has(definition.id));
+    }
+
+    function getAdvancedFilterDefinitions() {
+      return state.filterDefinitions.filter((definition) => !QUICK_FILTER_IDS.has(definition.id));
     }
 
     // ---------- Filtros ----------
@@ -2278,6 +3170,38 @@
       return state.fieldCatalog.filter((field) => field.type === "categorical");
     }
 
+    function getChartNumericFields() {
+      return getPriorityNumericFields().filter((field) => field.chartEligible !== false);
+    }
+
+    function getChartCategoricalFields() {
+      const prioritized = [];
+      const allFields = getCategoricalFields().filter((field) => field.chartEligible !== false);
+      ["location", "propertyType"].forEach((semanticKey) => {
+        const field = allFields.find((item) => item.semanticKey === semanticKey);
+        if (field) {
+          prioritized.push(field);
+        }
+      });
+      allFields.forEach((field) => {
+        if (!prioritized.includes(field)) {
+          prioritized.push(field);
+        }
+      });
+      return prioritized;
+    }
+
+    function getComparisonNumericFields() {
+      const semanticFields = FIELD_PRIORITY
+        .map((semanticKey) => state.fieldCatalog.find((field) => field.semanticKey === semanticKey))
+        .filter(Boolean);
+      const usableSemanticFields = semanticFields.filter((field) => state.filteredRows.some((row) => Number.isFinite(getFieldValue(row, field))));
+      if (usableSemanticFields.length) {
+        return usableSemanticFields;
+      }
+      return getChartNumericFields();
+    }
+
     function getPriorityNumericFields() {
       const numerics = getNumericFields();
       const ordered = [];
@@ -2296,39 +3220,48 @@
     }
 
     function computeSummaryMetrics(rows) {
-      const metrics = [
+      const priceField = state.fieldCatalog.find((field) => field.semanticKey === "price");
+      const areaField = state.fieldCatalog.find((field) => field.semanticKey === "area");
+      const pricePerM2Field = state.fieldCatalog.find((field) => field.semanticKey === "pricePerM2");
+      const locationField = state.fieldCatalog.find((field) => field.semanticKey === "location");
+
+      const priceValues = priceField ? rows.map((row) => getFieldValue(row, priceField)).filter((value) => typeof value === "number" && Number.isFinite(value)) : [];
+      const areaValues = areaField ? rows.map((row) => getFieldValue(row, areaField)).filter((value) => typeof value === "number" && Number.isFinite(value)) : [];
+      const pricePerM2Values = pricePerM2Field ? rows.map((row) => getFieldValue(row, pricePerM2Field)).filter((value) => typeof value === "number" && Number.isFinite(value)) : [];
+      const locations = locationField ? rows.map((row) => valueToText(getFieldValue(row, locationField))).filter(Boolean) : [];
+
+      return [
         {
-          label: "Anúncios filtrados",
+          label: "Total anúncios",
           value: formatNumber(rows.length),
           help: "Número de registos visíveis neste momento."
+        },
+        {
+          label: "Preço médio",
+          value: priceValues.length ? formatCurrency(d3.mean(priceValues)) : "—",
+          help: "Média do preço no subconjunto filtrado."
+        },
+        {
+          label: "Preço mediano",
+          value: priceValues.length ? formatCurrency(d3.median(priceValues)) : "—",
+          help: "Mediana do preço no subconjunto filtrado."
+        },
+        {
+          label: "Área média",
+          value: areaValues.length ? `${formatNumber(d3.mean(areaValues), d3.mean(areaValues) % 1 ? 1 : 0)} m²` : "—",
+          help: "Média da área disponível."
+        },
+        {
+          label: "Preço médio / m²",
+          value: pricePerM2Values.length ? formatPricePerM2(d3.mean(pricePerM2Values)) : "—",
+          help: "Média do preço por metro quadrado."
+        },
+        {
+          label: "Zonas únicas",
+          value: formatNumber(new Set(locations).size),
+          help: "Número de localizações distintas no subconjunto."
         }
       ];
-
-      getPriorityNumericFields()
-        .slice(0, 3)
-        .forEach((field) => {
-          const values = rows
-            .map((row) => getFieldValue(row, field))
-            .filter((value) => typeof value === "number" && Number.isFinite(value));
-
-          if (!values.length) {
-            return;
-          }
-
-          metrics.push({
-            label: `Média · ${field.label}`,
-            value: formatFieldValue(field, d3.mean(values)),
-            help: "Média do subconjunto filtrado."
-          });
-
-          metrics.push({
-            label: `Mediana · ${field.label}`,
-            value: formatFieldValue(field, d3.median(values)),
-            help: "Mediana do subconjunto filtrado."
-          });
-        });
-
-      return metrics.slice(0, 6);
     }
 
     function percentileOfValue(values, value) {
@@ -2366,7 +3299,7 @@
       }
 
       const referenceRows = filteredRows.filter((row) => row.id !== selectedRow.id);
-      const comparisonFields = getPriorityNumericFields().slice(0, 4);
+      const comparisonFields = getComparisonNumericFields().slice(0, 4);
 
       return comparisonFields.map((field) => {
         const selectedValue = getFieldValue(selectedRow, field);
@@ -2390,8 +3323,8 @@
 
     // ---------- Seletor e layout dos gráficos ----------
     function chooseDefaultChartConfig() {
-      const numericFields = getNumericFields();
-      const categoricalFields = getCategoricalFields();
+      const numericFields = getChartNumericFields();
+      const categoricalFields = getChartCategoricalFields();
 
       const priceField = numericFields.find((field) => field.semanticKey === "price");
       const areaField = numericFields.find((field) => field.semanticKey === "area");
@@ -2403,6 +3336,7 @@
       state.chartConfig.categoryField = locationField?.id || typeField?.id || categoricalFields[0]?.id || "";
       state.chartConfig.scatterX = areaField?.id || numericFields[0]?.id || "";
       state.chartConfig.scatterY = priceField?.id || pricePerM2Field?.id || numericFields[1]?.id || numericFields[0]?.id || "";
+      state.chartConfig.boxplotField = pricePerM2Field?.id || priceField?.id || areaField?.id || numericFields[0]?.id || "";
 
       if (state.chartConfig.scatterX && state.chartConfig.scatterX === state.chartConfig.scatterY && numericFields.length > 1) {
         const alternative = numericFields.find((field) => field.id !== state.chartConfig.scatterX);
@@ -2411,8 +3345,8 @@
     }
 
     function reconcileChartConfig() {
-      const numericIds = new Set(getNumericFields().map((field) => field.id));
-      const categoricalIds = new Set(getCategoricalFields().map((field) => field.id));
+      const numericIds = new Set(getChartNumericFields().map((field) => field.id));
+      const categoricalIds = new Set(getChartCategoricalFields().map((field) => field.id));
 
       if (!numericIds.has(state.chartConfig.histogramField)) {
         state.chartConfig.histogramField = "";
@@ -2426,8 +3360,11 @@
       if (!numericIds.has(state.chartConfig.scatterY)) {
         state.chartConfig.scatterY = "";
       }
+      if (!numericIds.has(state.chartConfig.boxplotField)) {
+        state.chartConfig.boxplotField = "";
+      }
 
-      if (!state.chartConfig.histogramField || !state.chartConfig.categoryField || !state.chartConfig.scatterX || !state.chartConfig.scatterY) {
+      if (!state.chartConfig.histogramField || !state.chartConfig.categoryField || !state.chartConfig.scatterX || !state.chartConfig.scatterY || !state.chartConfig.boxplotField) {
         chooseDefaultChartConfig();
       }
     }
@@ -2443,6 +3380,7 @@
       renderCharts();
       renderListingExplorer();
       renderDetailPanel();
+      syncChromeState();
     }
 
     function renderHero() {
@@ -2495,6 +3433,7 @@
         refs.mappingPanel.classList.add("hidden");
         refs.mappingGrid.innerHTML = "";
         refs.mappingSummary.innerHTML = "";
+        refs.mappingBody.classList.add("hidden");
         return;
       }
 
@@ -2529,47 +3468,68 @@
         }
       });
 
-      const summaryPills = SEMANTIC_FIELDS
-        .map((field) => {
-          const mapped = state.mapping[field.key];
-          if (mapped) {
-            return `<span class="pill">${escapeHtml(field.label)} → ${escapeHtml(mapped)}</span>`;
-          }
-          if (field.key === "pricePerM2" && state.mapping.price && state.mapping.area) {
-            return `<span class="pill">Preço por m² → derivado</span>`;
-          }
-          return "";
-        })
-        .filter(Boolean)
-        .join("");
+      const mappedEntries = SEMANTIC_FIELDS
+        .map((field) => ({ field, mapped: state.mapping[field.key] || "" }))
+        .filter((entry) => entry.mapped);
+      const summaryPills = [
+        `<span class="pill">${formatNumber(mappedEntries.length)} mapeados</span>`
+      ];
+      if (!state.mapping.pricePerM2 && state.mapping.price && state.mapping.area) {
+        summaryPills.push(`<span class="pill">Preço/m² derivado</span>`);
+      }
+      mappedEntries.slice(0, 4).forEach((entry) => {
+        summaryPills.push(
+          `<span class="pill" title="${escapeHtml(entry.field.label)} -> ${escapeHtml(entry.mapped)}">${escapeHtml(entry.field.label)}</span>`
+        );
+      });
 
-      refs.mappingSummary.innerHTML = summaryPills || `<span class="pill">Sem mapeamentos ativos</span>`;
+      refs.mappingSummary.innerHTML = summaryPills.join("") || `<span class="pill">Sem mapeamentos ativos</span>`;
     }
 
     function renderFilterSidebar() {
       refs.globalSearch.value = state.filters.searchText || "";
 
       if (!state.filterDefinitions.length) {
-        refs.filterGroups.innerHTML = `<div class="empty-state">Carrega e mapeia um dataset para gerar filtros.</div>`;
+        refs.filterSummary.innerHTML = `<span class="pill">Sem filtros</span>`;
+        refs.quickFilterGroups.innerHTML = `<div class="empty-state">Carrega e mapeia um dataset para gerar filtros rápidos.</div>`;
+        refs.advancedFilterGroups.innerHTML = `<div class="empty-state">Sem filtros avançados disponíveis.</div>`;
         return;
       }
 
-      refs.filterGroups.innerHTML = state.filterDefinitions.map((definition) => {
+      const summaryPills = [
+        `<span class="pill">${countActiveFilters()} ativos</span>`,
+        `<span class="pill">${formatNumber(state.filteredRows.length)} resultados</span>`
+      ];
+      if ((state.filters.searchText || "").trim()) {
+        summaryPills.push(`<span class="pill">Pesquisa</span>`);
+      }
+      if (state.selectedListingId) {
+        summaryPills.push(`<span class="pill">Seleção ${escapeHtml(state.selectedListingId)}</span>`);
+      }
+      refs.filterSummary.innerHTML = summaryPills.join("");
+
+      const renderFilterMarkup = (definition, compact) => {
         const currentValue = state.filters.values[definition.id] || definition.defaultValue;
+        const cardClass = compact ? "filter-card filter-card-compact" : "filter-card";
         if (definition.type === "numeric") {
           const [minValue, maxValue] = currentValue;
           const totalRange = definition.max - definition.min || 1;
           const left = ((minValue - definition.min) / totalRange) * 100;
           const right = ((maxValue - definition.min) / totalRange) * 100;
-          return `
-            <div class="filter-card">
-              <h3>${escapeHtml(definition.label)}</h3>
-              <p class="field-meta">Filtro numérico automático.</p>
-              <div class="range-grid" data-filter-id="${escapeHtml(definition.id)}">
+          const rangeSummary = compact
+            ? `<div class="range-caption"><span>${escapeHtml(formatCompactFilterValue(definition, minValue))}</span><span>${escapeHtml(formatCompactFilterValue(definition, maxValue))}</span></div>`
+            : `
                 <div class="range-inputs">
                   <input class="range-number" data-role="min-input" type="number" step="any" value="${escapeHtml(minValue)}">
                   <input class="range-number" data-role="max-input" type="number" step="any" value="${escapeHtml(maxValue)}">
                 </div>
+              `;
+          return `
+            <div class="${cardClass}">
+              <h3>${escapeHtml(definition.label)}</h3>
+              <p class="field-meta">${compact ? "Faixa rápida" : "Filtro numérico automático."}</p>
+              <div class="range-grid" data-filter-id="${escapeHtml(definition.id)}">
+                ${rangeSummary}
                 <div class="dual-range" data-filter-id="${escapeHtml(definition.id)}">
                   <div class="dual-range-track">
                     <div class="dual-range-fill" style="left:${left}%; width:${Math.max(0, right - left)}%;"></div>
@@ -2585,7 +3545,7 @@
         if (definition.type === "date") {
           const [start, end] = currentValue;
           return `
-            <div class="filter-card" data-filter-id="${escapeHtml(definition.id)}">
+            <div class="${cardClass}" data-filter-id="${escapeHtml(definition.id)}">
               <h3>${escapeHtml(definition.label)}</h3>
               <p class="field-meta">Filtro por intervalo de datas.</p>
               <div class="range-inputs">
@@ -2599,14 +3559,14 @@
         const selectedValues = Array.isArray(currentValue) ? currentValue : [];
         const summary = selectedValues.length ? `${selectedValues.length} selecionados` : "Todos";
         return `
-          <div class="filter-card">
+          <div class="${cardClass}">
             <h3>${escapeHtml(definition.label)}</h3>
-            <p class="field-meta">Filtro categórico com pesquisa.</p>
+            <p class="field-meta">${compact ? "Escolha rápida" : "Filtro categórico com pesquisa."}</p>
             <div class="multi-select" data-filter-id="${escapeHtml(definition.id)}">
               <details>
                 <summary>
                   <span>${escapeHtml(summary)}</span>
-                  <span>Mostrar</span>
+                  <span>${compact ? "Abrir" : "Mostrar"}</span>
                 </summary>
                 <div class="multi-select-content">
                   <input class="multi-select-search" data-role="option-search" type="search" placeholder="Pesquisar opção">
@@ -2623,7 +3583,13 @@
             </div>
           </div>
         `;
-      }).join("");
+      };
+
+      refs.quickFilterGroups.innerHTML = getQuickFilterDefinitions().map((definition) => renderFilterMarkup(definition, true)).join("")
+        || `<div class="empty-state">Não há filtros rápidos compatíveis com este dataset.</div>`;
+
+      refs.advancedFilterGroups.innerHTML = getAdvancedFilterDefinitions().map((definition) => renderFilterMarkup(definition, false)).join("")
+        || `<div class="empty-state">Sem filtros avançados disponíveis.</div>`;
     }
 
     function renderMetrics() {
@@ -2639,13 +3605,14 @@
     }
 
     function renderChartSelectors() {
-      const numericFields = getNumericFields();
-      const categoricalFields = getCategoricalFields();
+      const numericFields = getChartNumericFields();
+      const categoricalFields = getChartCategoricalFields();
 
       populateSelect(refs.histFieldSelect, numericFields, state.chartConfig.histogramField);
       populateSelect(refs.categoryFieldSelect, categoricalFields, state.chartConfig.categoryField);
       populateSelect(refs.scatterXSelect, numericFields, state.chartConfig.scatterX);
       populateSelect(refs.scatterYSelect, numericFields, state.chartConfig.scatterY);
+      populateSelect(refs.boxplotFieldSelect, numericFields, state.chartConfig.boxplotField);
     }
 
     function populateSelect(select, fields, selectedValue) {
@@ -2663,6 +3630,9 @@
       renderHistogram();
       renderBarChart();
       renderScatter();
+      renderBoxplot();
+      renderCorrelationHeatmap();
+      renderPercentilePanel();
     }
 
     function clearChart(container, message) {
@@ -2681,6 +3651,31 @@
         .attr("preserveAspectRatio", "xMidYMid meet");
 
       return svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+    }
+
+    function styleAxis(axisGroup) {
+      axisGroup.selectAll("text")
+        .attr("fill", "#66777d")
+        .attr("font-size", 11)
+        .attr("font-family", "Inter, Segoe UI, sans-serif");
+
+      axisGroup.selectAll("line")
+        .attr("stroke", "rgba(16, 34, 46, 0.14)");
+
+      axisGroup.selectAll(".domain")
+        .attr("stroke", "rgba(16, 34, 46, 0.18)");
+    }
+
+    function addGridlines(group, scale, orientation, size) {
+      const axis = orientation === "x"
+        ? d3.axisBottom(scale).tickSize(-size).tickFormat("")
+        : d3.axisLeft(scale).tickSize(-size).tickFormat("");
+
+      group.call(axis);
+      group.select(".domain").remove();
+      group.selectAll("line")
+        .attr("stroke", "rgba(16, 34, 46, 0.08)")
+        .attr("stroke-dasharray", "3 5");
     }
 
     function renderHistogram() {
@@ -2712,6 +3707,8 @@
       const xScale = d3.scaleLinear().domain(extent).nice().range([0, innerWidth]);
       const bins = d3.bin().domain(xScale.domain()).thresholds(Math.min(24, Math.max(8, Math.round(Math.sqrt(values.length)))))(values);
       const yScale = d3.scaleLinear().domain([0, d3.max(bins, (bin) => bin.length) || 1]).nice().range([innerHeight, 0]);
+
+      addGridlines(svg.append("g"), yScale, "y", innerWidth);
 
       svg.append("g")
         .selectAll("rect")
@@ -2750,12 +3747,15 @@
           .text("Selecionado");
       }
 
-      svg.append("g")
+      const xAxis = svg.append("g")
         .attr("transform", `translate(0,${innerHeight})`)
         .call(d3.axisBottom(xScale).ticks(6).tickFormat((tick) => formatAxisTick(field, tick)));
 
-      svg.append("g")
+      const yAxis = svg.append("g")
         .call(d3.axisLeft(yScale).ticks(5).tickFormat((tick) => formatNumber(tick)));
+
+      styleAxis(xAxis);
+      styleAxis(yAxis);
 
       svg.append("text")
         .attr("x", innerWidth / 2)
@@ -2807,6 +3807,13 @@
       const yScale = d3.scaleBand().domain(trimmed.map(([value]) => value)).range([0, innerHeight]).padding(0.18);
       const xScale = d3.scaleLinear().domain([0, d3.max(trimmed, (item) => item[1]) || 1]).nice().range([0, innerWidth]);
 
+      addGridlines(
+        svg.append("g").attr("transform", `translate(0,${innerHeight})`),
+        xScale,
+        "x",
+        innerHeight
+      );
+
       svg.append("g")
         .selectAll("rect")
         .data(trimmed)
@@ -2825,12 +3832,15 @@
         })
         .on("mouseleave", hideTooltip);
 
-      svg.append("g")
+      const yAxis = svg.append("g")
         .call(d3.axisLeft(yScale).tickFormat((tick) => trimLabel(tick, 20)));
 
-      svg.append("g")
+      const xAxis = svg.append("g")
         .attr("transform", `translate(0,${innerHeight})`)
         .call(d3.axisBottom(xScale).ticks(5).tickFormat((tick) => formatNumber(tick)));
+
+      styleAxis(xAxis);
+      styleAxis(yAxis);
 
       svg.append("text")
         .attr("x", innerWidth / 2)
@@ -2873,6 +3883,14 @@
       const xScale = d3.scaleLinear().domain(d3.extent(points, (point) => point.x)).nice().range([0, innerWidth]);
       const yScale = d3.scaleLinear().domain(d3.extent(points, (point) => point.y)).nice().range([innerHeight, 0]);
 
+      addGridlines(
+        svg.append("g").attr("transform", `translate(0,${innerHeight})`),
+        xScale,
+        "x",
+        innerHeight
+      );
+      addGridlines(svg.append("g"), yScale, "y", innerWidth);
+
       if (points.length >= 2) {
         const slope = linearRegressionSlope(points);
         const intercept = linearRegressionIntercept(points, slope);
@@ -2913,12 +3931,15 @@
         })
         .on("mouseleave", hideTooltip);
 
-      svg.append("g")
+      const xAxis = svg.append("g")
         .attr("transform", `translate(0,${innerHeight})`)
         .call(d3.axisBottom(xScale).ticks(6).tickFormat((tick) => formatAxisTick(xField, tick)));
 
-      svg.append("g")
+      const yAxis = svg.append("g")
         .call(d3.axisLeft(yScale).ticks(6).tickFormat((tick) => formatAxisTick(yField, tick)));
+
+      styleAxis(xAxis);
+      styleAxis(yAxis);
 
       svg.append("text")
         .attr("x", innerWidth / 2)
@@ -2936,6 +3957,236 @@
         .attr("fill", "#66777d")
         .attr("font-size", 13)
         .text(yField.label);
+    }
+
+    function renderBoxplot() {
+      const field = getFieldById(state.chartConfig.boxplotField);
+      if (!field || field.type !== "numeric") {
+        clearChart(refs.boxplotChart, "Sem campo numérico disponível para o boxplot.");
+        return;
+      }
+
+      const values = state.filteredRows
+        .map((row) => getFieldValue(row, field))
+        .filter((value) => typeof value === "number" && Number.isFinite(value))
+        .sort(d3.ascending);
+
+      if (values.length < 4) {
+        clearChart(refs.boxplotChart, "São precisos mais dados para desenhar um boxplot fiável.");
+        return;
+      }
+
+      const selectedRow = getSelectedRow();
+      const selectedValue = selectedRow ? getFieldValue(selectedRow, field) : null;
+      const width = refs.boxplotChart.clientWidth || 520;
+      const height = Math.max(280, refs.boxplotChart.clientHeight || 300);
+      const margin = { top: 28, right: 18, bottom: 48, left: 24 };
+      const innerWidth = width - margin.left - margin.right;
+      const innerHeight = height - margin.top - margin.bottom;
+      const svg = createSvg(refs.boxplotChart, width, height, margin);
+      const q1 = d3.quantileSorted(values, 0.25);
+      const median = d3.quantileSorted(values, 0.5);
+      const q3 = d3.quantileSorted(values, 0.75);
+      const min = values[0];
+      const max = values[values.length - 1];
+      const xScale = d3.scaleLinear().domain([Math.min(min, selectedValue ?? min), Math.max(max, selectedValue ?? max)]).nice().range([0, innerWidth]);
+      const centerY = innerHeight / 2;
+
+      addGridlines(svg.append("g").attr("transform", `translate(0,${innerHeight})`), xScale, "x", innerHeight);
+
+      svg.append("line")
+        .attr("x1", xScale(min))
+        .attr("x2", xScale(max))
+        .attr("y1", centerY)
+        .attr("y2", centerY)
+        .attr("stroke", "#9cb4b8")
+        .attr("stroke-width", 5)
+        .attr("stroke-linecap", "round");
+
+      svg.append("rect")
+        .attr("x", xScale(q1))
+        .attr("y", centerY - 30)
+        .attr("width", Math.max(8, xScale(q3) - xScale(q1)))
+        .attr("height", 60)
+        .attr("rx", 18)
+        .attr("fill", "rgba(15, 107, 114, 0.16)")
+        .attr("stroke", "#0f6b72")
+        .attr("stroke-width", 2);
+
+      svg.append("line")
+        .attr("x1", xScale(median))
+        .attr("x2", xScale(median))
+        .attr("y1", centerY - 34)
+        .attr("y2", centerY + 34)
+        .attr("stroke", "#0f6b72")
+        .attr("stroke-width", 4);
+
+      svg.append("line")
+        .attr("x1", xScale(min))
+        .attr("x2", xScale(min))
+        .attr("y1", centerY - 22)
+        .attr("y2", centerY + 22)
+        .attr("stroke", "#748e95")
+        .attr("stroke-width", 3);
+
+      svg.append("line")
+        .attr("x1", xScale(max))
+        .attr("x2", xScale(max))
+        .attr("y1", centerY - 22)
+        .attr("y2", centerY + 22)
+        .attr("stroke", "#748e95")
+        .attr("stroke-width", 3);
+
+      if (typeof selectedValue === "number" && Number.isFinite(selectedValue)) {
+        svg.append("circle")
+          .attr("cx", xScale(selectedValue))
+          .attr("cy", centerY)
+          .attr("r", 9)
+          .attr("fill", "#cb5b2b")
+          .attr("stroke", "#ffffff")
+          .attr("stroke-width", 3);
+
+        svg.append("text")
+          .attr("x", Math.min(innerWidth - 10, xScale(selectedValue) + 12))
+          .attr("y", centerY - 42)
+          .attr("fill", "#cb5b2b")
+          .attr("font-weight", 800)
+          .attr("font-size", 12)
+          .text("Selecionado");
+      }
+
+      const xAxis = svg.append("g")
+        .attr("transform", `translate(0,${innerHeight})`)
+        .call(d3.axisBottom(xScale).ticks(6).tickFormat((tick) => formatAxisTick(field, tick)));
+      styleAxis(xAxis);
+    }
+
+    function renderCorrelationHeatmap() {
+      const numericFields = getComparisonNumericFields().slice(0, 5);
+      if (numericFields.length < 2) {
+        clearChart(refs.heatmapChart, "São precisos pelo menos dois campos numéricos para correlação.");
+        return;
+      }
+
+      const width = refs.heatmapChart.clientWidth || 520;
+      const height = Math.max(280, refs.heatmapChart.clientHeight || 300);
+      const margin = { top: 70, right: 16, bottom: 18, left: 110 };
+      const innerWidth = width - margin.left - margin.right;
+      const innerHeight = height - margin.top - margin.bottom;
+      const svg = createSvg(refs.heatmapChart, width, height, margin);
+      const labels = numericFields.map((field) => field.label);
+      const matrix = [];
+
+      numericFields.forEach((rowField) => {
+        numericFields.forEach((colField) => {
+          const pairs = state.filteredRows
+            .map((row) => ({
+              x: getFieldValue(row, colField),
+              y: getFieldValue(row, rowField)
+            }))
+            .filter((item) => Number.isFinite(item.x) && Number.isFinite(item.y));
+          matrix.push({
+            row: rowField.label,
+            col: colField.label,
+            value: pearsonCorrelation(pairs)
+          });
+        });
+      });
+
+      const xScale = d3.scaleBand().domain(labels).range([0, innerWidth]).padding(0.08);
+      const yScale = d3.scaleBand().domain(labels).range([0, innerHeight]).padding(0.08);
+      const color = d3.scaleLinear()
+        .domain([-1, 0, 1])
+        .range(["#cb5b2b", "#f3f0eb", "#0f6b72"]);
+
+      svg.selectAll("rect")
+        .data(matrix)
+        .join("rect")
+        .attr("x", (item) => xScale(item.col))
+        .attr("y", (item) => yScale(item.row))
+        .attr("width", xScale.bandwidth())
+        .attr("height", yScale.bandwidth())
+        .attr("rx", 12)
+        .attr("fill", (item) => color(item.value))
+        .on("mousemove", (event, item) => {
+          showTooltip(
+            event,
+            `<strong>${escapeHtml(item.row)} × ${escapeHtml(item.col)}</strong><br>Correlação: ${escapeHtml(item.value.toFixed(2))}`
+          );
+        })
+        .on("mouseleave", hideTooltip);
+
+      svg.selectAll(".heat-label-x")
+        .data(labels)
+        .join("text")
+        .attr("class", "heat-label-x")
+        .attr("x", (label) => xScale(label) + xScale.bandwidth() / 2)
+        .attr("y", -12)
+        .attr("text-anchor", "middle")
+        .attr("fill", "#66777d")
+        .attr("font-size", 11)
+        .text((label) => trimLabel(label, 14));
+
+      svg.selectAll(".heat-label-y")
+        .data(labels)
+        .join("text")
+        .attr("class", "heat-label-y")
+        .attr("x", -10)
+        .attr("y", (label) => yScale(label) + yScale.bandwidth() / 2 + 4)
+        .attr("text-anchor", "end")
+        .attr("fill", "#66777d")
+        .attr("font-size", 11)
+        .text((label) => trimLabel(label, 16));
+    }
+
+    function renderPercentilePanel() {
+      const selectedRow = getSelectedRow();
+      if (!selectedRow) {
+        clearChart(refs.percentileChart, "Seleciona um anúncio para veres percentis e posição relativa.");
+        return;
+      }
+
+      const comparison = computeListingComparison(selectedRow, state.filteredRows).slice(0, 4);
+      if (!comparison.length) {
+        clearChart(refs.percentileChart, "Sem dados suficientes para calcular percentis deste anúncio.");
+        return;
+      }
+
+      refs.percentileChart.innerHTML = `
+        <div class="percentile-stack">
+          ${comparison.map((item) => {
+            const percentile = item.percentile ?? 0;
+            return `
+              <div class="percentile-row">
+                <div class="percentile-header">
+                  <strong>${escapeHtml(item.field.label)}</strong>
+                  <span class="indicator-chip is-${escapeHtml(getRelativeIndicator(item.selectedValue, d3.median(item.referenceValues) || item.selectedValue).direction)}">${escapeHtml(formatPercentile(percentile))}</span>
+                </div>
+                <div class="percentile-track">
+                  <div class="percentile-midline"></div>
+                  <div class="percentile-marker" style="left:${clamp(percentile, 0, 100)}%;"></div>
+                </div>
+                <div class="value-secondary">
+                  Valor: ${escapeHtml(formatFieldValue(item.field, item.selectedValue))} · Dif. média: ${escapeHtml(formatDelta(item.deltaMean, item.field))}
+                </div>
+              </div>
+            `;
+          }).join("")}
+        </div>
+      `;
+    }
+
+    function pearsonCorrelation(pairs) {
+      if (!pairs.length) {
+        return 0;
+      }
+      const meanX = d3.mean(pairs, (pair) => pair.x);
+      const meanY = d3.mean(pairs, (pair) => pair.y);
+      const numerator = d3.sum(pairs, (pair) => (pair.x - meanX) * (pair.y - meanY));
+      const denominatorX = Math.sqrt(d3.sum(pairs, (pair) => (pair.x - meanX) ** 2));
+      const denominatorY = Math.sqrt(d3.sum(pairs, (pair) => (pair.y - meanY) ** 2));
+      const denominator = denominatorX * denominatorY;
+      return denominator ? numerator / denominator : 0;
     }
 
     function linearRegressionSlope(points) {
@@ -2966,6 +4217,116 @@
       return label.length > length ? `${label.slice(0, length - 1)}…` : label;
     }
 
+    function getTableRows() {
+      const rows = [...state.filteredRows];
+      const { key, direction } = state.ui.tableSort;
+      const multiplier = direction === "asc" ? 1 : -1;
+      rows.sort((left, right) => compareTableRows(left, right, key) * multiplier);
+      return rows;
+    }
+
+    function compareTableRows(left, right, key) {
+      const valueLeft = getSortValue(left, key);
+      const valueRight = getSortValue(right, key);
+
+      if (valueLeft === null && valueRight === null) {
+        return 0;
+      }
+      if (valueLeft === null) {
+        return 1;
+      }
+      if (valueRight === null) {
+        return -1;
+      }
+
+      if (typeof valueLeft === "number" && typeof valueRight === "number") {
+        return valueLeft - valueRight;
+      }
+
+      if (valueLeft instanceof Date && valueRight instanceof Date) {
+        return valueLeft.getTime() - valueRight.getTime();
+      }
+
+      return String(valueLeft).localeCompare(String(valueRight), "pt");
+    }
+
+    function getSortValue(row, key) {
+      switch (key) {
+        case "title":
+          return row.semantics.title || row.id;
+        case "price":
+          return row.semantics.price ?? null;
+        case "area":
+          return row.semantics.area ?? null;
+        case "pricePerM2":
+          return row.semantics.pricePerM2 ?? null;
+        case "bedrooms":
+          return row.semantics.bedrooms ?? null;
+        case "bathrooms":
+          return row.semantics.bathrooms ?? null;
+        case "propertyType":
+          return row.semantics.propertyType || null;
+        case "location":
+          return row.semantics.location || null;
+        case "date":
+          return row.semantics.date instanceof Date ? row.semantics.date : null;
+        case "relative":
+          return computeRelativeScore(row, getMedianBaselines(state.filteredRows));
+        default:
+          return row.index;
+      }
+    }
+
+    function getMedianBaselines(rows) {
+      const collect = (key) => {
+        const values = rows.map((row) => row.semantics[key]).filter((value) => typeof value === "number" && Number.isFinite(value));
+        return values.length ? d3.median(values) : null;
+      };
+      return {
+        price: collect("price"),
+        area: collect("area"),
+        pricePerM2: collect("pricePerM2")
+      };
+    }
+
+    function getRelativeIndicator(value, baseline) {
+      if (!Number.isFinite(value) || !Number.isFinite(baseline) || baseline === 0) {
+        return { direction: "flat", label: "Sem referência", symbol: "•" };
+      }
+      const ratio = (value - baseline) / baseline;
+      if (ratio > 0.05) {
+        return { direction: "up", label: "Acima da mediana", symbol: "↑" };
+      }
+      if (ratio < -0.05) {
+        return { direction: "down", label: "Abaixo da mediana", symbol: "↓" };
+      }
+      return { direction: "flat", label: "Perto da mediana", symbol: "•" };
+    }
+
+    function computeRelativeScore(row, baselines) {
+      return ["price", "area", "pricePerM2"].reduce((score, key) => {
+        const indicator = getRelativeIndicator(row.semantics[key], baselines[key]);
+        if (indicator.direction === "up") {
+          return score + 1;
+        }
+        if (indicator.direction === "down") {
+          return score - 1;
+        }
+        return score;
+      }, 0);
+    }
+
+    function getRelativeState(row, baselines) {
+      const score = computeRelativeScore(row, baselines);
+      if (score > 0) {
+        return { direction: "up", label: "Acima" };
+      }
+      if (score < 0) {
+        return { direction: "down", label: "Abaixo" };
+      }
+      return { direction: "flat", label: "Neutro" };
+    }
+
     // ---------- Explorer ----------
     function renderListingExplorer() {
       if (!state.filteredRows.length) {
@@ -2974,32 +4335,108 @@
         return;
       }
 
+      const baselines = getMedianBaselines(state.filteredRows);
+      const rows = getTableRows();
+      const sortArrow = state.ui.tableSort.direction === "asc" ? "↑" : "↓";
+      const renderHead = (label, key) => `
+        <button class="table-head-button ${state.ui.tableSort.key === key ? "is-active" : ""}" type="button" data-sort-key="${escapeHtml(key)}">
+          <span>${escapeHtml(label)}</span>
+          <span class="sort-arrow">${state.ui.tableSort.key === key ? sortArrow : "↕"}</span>
+        </button>
+      `;
+
       refs.listingSummary.textContent = `${formatNumber(state.filteredRows.length)} anúncios`;
-      refs.listingList.innerHTML = state.filteredRows.map((row) => {
+      refs.listingList.innerHTML = `
+        <div class="table-scroll">
+          <table class="listing-table">
+            <colgroup>
+              <col class="col-annuncio">
+              <col class="col-price">
+              <col class="col-area">
+              <col class="col-price-m2">
+              <col class="col-bedrooms">
+              <col class="col-bathrooms">
+              <col class="col-type">
+              <col class="col-location">
+              <col class="col-date">
+              <col class="col-relative">
+            </colgroup>
+            <thead>
+              <tr>
+                <th>${renderHead("Anúncio", "title")}</th>
+                <th>${renderHead("Preço", "price")}</th>
+                <th>${renderHead("Área", "area")}</th>
+                <th>${renderHead("Preço/m²", "pricePerM2")}</th>
+                <th>${renderHead("Quartos", "bedrooms")}</th>
+                <th>${renderHead("WC", "bathrooms")}</th>
+                <th>${renderHead("Tipo", "propertyType")}</th>
+                <th>${renderHead("Zona", "location")}</th>
+                <th>${renderHead("Data", "date")}</th>
+                <th>${renderHead("Relativo", "relative")}</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rows.map((row) => {
         const images = row.semantics.images || [];
         const thumb = images[0]
           ? `<img src="${escapeHtml(images[0])}" alt="${escapeHtml(row.semantics.title || row.id)}">`
           : `<div>Sem imagem</div>`;
-        const fieldBits = [
-          row.semantics.propertyType || "",
+        const footerBits = [
           row.semantics.location || "",
-          row.semantics.bedrooms !== null && row.semantics.bedrooms !== undefined ? `${formatNumber(row.semantics.bedrooms)} quartos` : "",
-          row.semantics.bathrooms !== null && row.semantics.bathrooms !== undefined ? `${formatNumber(row.semantics.bathrooms)} WC` : "",
-          row.semantics.area ? `${formatNumber(row.semantics.area, row.semantics.area % 1 ? 1 : 0)} m²` : ""
+          row.semantics.date instanceof Date ? formatDate(row.semantics.date) : "",
+          `ID ${row.semantics.listingId || row.id}`
         ].filter(Boolean);
-
+        const priceIndicator = getRelativeIndicator(row.semantics.price, baselines.price);
+        const areaIndicator = getRelativeIndicator(row.semantics.area, baselines.area);
+        const ppm2Indicator = getRelativeIndicator(row.semantics.pricePerM2, baselines.pricePerM2);
+        const relativeState = getRelativeState(row, baselines);
         return `
-          <article class="listing-card ${row.id === state.selectedListingId ? "is-selected" : ""}" data-listing-id="${escapeHtml(row.id)}">
-            <div class="listing-thumb">${thumb}</div>
-            <div class="listing-body">
-              <h3 class="listing-title">${escapeHtml(row.semantics.title || row.id)}</h3>
-              <p class="listing-line">${escapeHtml(row.semantics.location || "Sem localização")}</p>
-              <p class="listing-line">${escapeHtml(formatCurrency(row.semantics.price))}</p>
-              <p class="listing-line">${escapeHtml(fieldBits.join(" · ") || "Sem detalhe adicional")}</p>
-            </div>
-          </article>
+                <tr class="table-row ${row.id === state.selectedListingId ? "is-selected" : ""}" data-listing-id="${escapeHtml(row.id)}">
+                  <td>
+                    <div class="listing-cell">
+                      <div class="listing-mini-thumb">${thumb}</div>
+                      <div class="listing-main">
+                        <h3 class="listing-main-title">${escapeHtml(row.semantics.title || row.id)}</h3>
+                        <p class="listing-main-meta">${escapeHtml(footerBits.join(" · ") || "Sem detalhe adicional")}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td>${renderTableMetricCell(formatCurrency(row.semantics.price), priceIndicator)}</td>
+                  <td>${renderTableMetricCell(row.semantics.area ? `${formatNumber(row.semantics.area, row.semantics.area % 1 ? 1 : 0)} m²` : "—", areaIndicator)}</td>
+                  <td>${renderTableMetricCell(formatPricePerM2(row.semantics.pricePerM2), ppm2Indicator)}</td>
+                  <td>${renderPlainTableCell(row.semantics.bedrooms !== null && row.semantics.bedrooms !== undefined ? formatNumber(row.semantics.bedrooms) : "—")}</td>
+                  <td>${renderPlainTableCell(row.semantics.bathrooms !== null && row.semantics.bathrooms !== undefined ? formatNumber(row.semantics.bathrooms) : "—")}</td>
+                  <td>${renderPlainTableCell(row.semantics.propertyType || "—", "is-truncate")}</td>
+                  <td>${renderPlainTableCell(row.semantics.location || "—", "is-truncate")}</td>
+                  <td>${renderPlainTableCell(row.semantics.date instanceof Date ? formatDate(row.semantics.date) : "—")}</td>
+                  <td><span class="relative-pill is-${escapeHtml(relativeState.direction)}">${escapeHtml(relativeState.label)}</span></td>
+                </tr>
         `;
-      }).join("");
+      }).join("")}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function renderTableMetricCell(value, indicator) {
+      return `
+        <div class="value-stack">
+          <div class="value-primary">${escapeHtml(value)}</div>
+          <span class="indicator-chip is-${escapeHtml(indicator.direction)}" title="${escapeHtml(indicator.label)}">
+            <span>${escapeHtml(indicator.symbol)}</span>
+            <span>${escapeHtml(indicator.label)}</span>
+          </span>
+        </div>
+      `;
+    }
+
+    function renderPlainTableCell(value, extraClass = "") {
+      return `
+        <div class="value-stack ${escapeHtml(extraClass)}">
+          <div class="value-primary" title="${escapeHtml(value)}">${escapeHtml(value)}</div>
+        </div>
+      `;
     }
 
     // ---------- Detalhe e comparação ----------
@@ -3017,10 +4454,25 @@
       const images = selectedRow.semantics.images || [];
       const heroIndex = clamp(state.detailImageIndex, 0, Math.max(images.length - 1, 0));
       const heroImage = images[heroIndex];
+      const kpiCards = [
+        renderDetailKpiCard("Preço", formatCurrency(selectedRow.semantics.price)),
+        renderDetailKpiCard("Tipo", selectedRow.semantics.propertyType || "—"),
+        renderDetailKpiCard("Área", selectedRow.semantics.area ? `${formatNumber(selectedRow.semantics.area, selectedRow.semantics.area % 1 ? 1 : 0)} m²` : "—"),
+        renderDetailKpiCard("Quartos", selectedRow.semantics.bedrooms !== null && selectedRow.semantics.bedrooms !== undefined ? formatNumber(selectedRow.semantics.bedrooms) : "—")
+      ].join("");
 
-      refs.detailPanel.className = "detail-shell";
+      refs.detailPanel.className = "";
       refs.detailPanel.innerHTML = `
         <div class="detail-shell">
+          <div class="detail-topbar">
+            <div class="panel-header-copy">
+              <p class="eyebrow">Selecionado</p>
+              <h2 class="detail-title">${escapeHtml(selectedRow.semantics.title || selectedRow.id)}</h2>
+              <p class="helper">${escapeHtml(selectedRow.semantics.location || "Sem localização")}</p>
+            </div>
+            <div class="detail-kpi-strip">${kpiCards}</div>
+          </div>
+
           <div class="detail-hero">
             <div class="image-stage">
               <div class="hero-image">
@@ -3035,55 +4487,47 @@
               </div>
             </div>
             <div class="detail-body">
-              <div class="panel-header-copy">
-                <h2 class="detail-title">${escapeHtml(selectedRow.semantics.title || selectedRow.id)}</h2>
-                <p class="helper">${escapeHtml(selectedRow.semantics.location || "Sem localização")}</p>
-                <div class="pill-row">
-                  <span class="pill">${escapeHtml(formatCurrency(selectedRow.semantics.price))}</span>
-                  <span class="pill">${escapeHtml(selectedRow.semantics.propertyType || "Tipo n/d")}</span>
-                  <span class="pill">${escapeHtml(selectedRow.semantics.area ? `${formatNumber(selectedRow.semantics.area, selectedRow.semantics.area % 1 ? 1 : 0)} m²` : "Área n/d")}</span>
-                  <span class="pill">${escapeHtml(selectedRow.semantics.bedrooms !== null && selectedRow.semantics.bedrooms !== undefined ? `${formatNumber(selectedRow.semantics.bedrooms)} quartos` : "Quartos n/d")}</span>
+              <section class="detail-section">
+                <h3>Resumo do anúncio</h3>
+                <div class="detail-metadata-grid">
+                  ${renderMetadataCard("ID", selectedRow.semantics.listingId || selectedRow.id)}
+                  ${renderMetadataCard("Data", formatDate(selectedRow.semantics.date))}
+                  ${renderMetadataCard("Preço por m²", formatPricePerM2(selectedRow.semantics.pricePerM2))}
+                  ${renderMetadataCard("Casas de banho", selectedRow.semantics.bathrooms !== null && selectedRow.semantics.bathrooms !== undefined ? formatNumber(selectedRow.semantics.bathrooms) : "—")}
+                  ${renderMetadataCard("Tipo", selectedRow.semantics.propertyType || "—")}
+                  ${renderMetadataCard("Localização", selectedRow.semantics.location || "—")}
                 </div>
-              </div>
+              </section>
 
-              <div class="detail-metadata-grid">
-                ${renderMetadataCard("ID", selectedRow.semantics.listingId || selectedRow.id)}
-                ${renderMetadataCard("Data", formatDate(selectedRow.semantics.date))}
-                ${renderMetadataCard("Preço por m²", formatCurrency(selectedRow.semantics.pricePerM2))}
-                ${renderMetadataCard("Casas de banho", selectedRow.semantics.bathrooms !== null && selectedRow.semantics.bathrooms !== undefined ? formatNumber(selectedRow.semantics.bathrooms) : "—")}
-                ${renderMetadataCard("Tipo", selectedRow.semantics.propertyType || "—")}
-                ${renderMetadataCard("Localização", selectedRow.semantics.location || "—")}
-              </div>
+              <section class="detail-section">
+                <h3>Comparação com o conjunto filtrado</h3>
+                <div class="comparison-grid">
+                  ${comparison.map((item) => `
+                    <article class="comparison-metric">
+                      <div class="comparison-label">${escapeHtml(item.field.label)}</div>
+                      <div class="comparison-value">${escapeHtml(formatFieldValue(item.field, item.selectedValue))}</div>
+                      <div class="field-meta">Percentil: ${escapeHtml(formatPercentile(item.percentile))}</div>
+                      <div class="field-meta">Dif. média: ${escapeHtml(formatDelta(item.deltaMean, item.field))}</div>
+                      <div class="field-meta">Dif. mediana: ${escapeHtml(formatDelta(item.deltaMedian, item.field))}</div>
+                      <div class="field-meta">Z-score: ${escapeHtml(formatZScore(item.zScore))}</div>
+                    </article>
+                  `).join("") || `<div class="empty-text">Sem métricas comparativas suficientes.</div>`}
+                </div>
+              </section>
+
+              <section class="detail-section">
+                <h3>Descrição</h3>
+                <p class="detail-description">${escapeHtml(selectedRow.semantics.description || "Sem descrição disponível.")}</p>
+                ${selectedRow.semantics.listingUrl ? `<a class="button button-secondary" href="${escapeHtml(selectedRow.semantics.listingUrl)}" target="_blank" rel="noreferrer">Abrir anúncio original</a>` : ""}
+              </section>
             </div>
           </div>
-
-          <section class="detail-section">
-            <h3>Descrição</h3>
-            <p class="detail-description">${escapeHtml(selectedRow.semantics.description || "Sem descrição disponível.")}</p>
-            ${selectedRow.semantics.listingUrl ? `<a class="button button-secondary" href="${escapeHtml(selectedRow.semantics.listingUrl)}" target="_blank" rel="noreferrer">Abrir anúncio original</a>` : ""}
-          </section>
 
           <section class="detail-section">
             <h3>Características</h3>
             <ul class="feature-list">
               ${buildFeatureItems(selectedRow).map((item) => `<li>${escapeHtml(item)}</li>`).join("") || `<li>Sem características legíveis.</li>`}
             </ul>
-          </section>
-
-          <section class="detail-section">
-            <h3>Comparação com o conjunto filtrado</h3>
-            <div class="comparison-grid">
-              ${comparison.map((item) => `
-                <article class="comparison-metric">
-                  <div class="comparison-label">${escapeHtml(item.field.label)}</div>
-                  <div class="comparison-value">${escapeHtml(formatFieldValue(item.field, item.selectedValue))}</div>
-                  <div class="field-meta">Percentil: ${escapeHtml(formatPercentile(item.percentile))}</div>
-                  <div class="field-meta">Dif. média: ${escapeHtml(formatDelta(item.deltaMean, item.field))}</div>
-                  <div class="field-meta">Dif. mediana: ${escapeHtml(formatDelta(item.deltaMedian, item.field))}</div>
-                  <div class="field-meta">Z-score: ${escapeHtml(formatZScore(item.zScore))}</div>
-                </article>
-              `).join("") || `<div class="empty-text">Sem métricas comparativas suficientes.</div>`}
-            </div>
           </section>
 
           <section class="detail-section">
@@ -3105,10 +4549,19 @@
       `;
     }
 
+    function renderDetailKpiCard(label, value) {
+      return `
+        <article class="detail-kpi-card">
+          <div class="detail-kpi-label">${escapeHtml(label)}</div>
+          <div class="detail-kpi-value">${escapeHtml(value)}</div>
+        </article>
+      `;
+    }
+
     function buildFeatureItems(row) {
       const items = [];
       if (row.semantics.pricePerM2) {
-        items.push(`Preço/m²: ${formatCurrency(row.semantics.pricePerM2)}`);
+        items.push(`Preço/m²: ${formatPricePerM2(row.semantics.pricePerM2)}`);
       }
       if (row.raw && Array.isArray(row.raw.feature_list)) {
         row.raw.feature_list.slice(0, 12).forEach((item) => {
@@ -3326,7 +4779,13 @@
       state.filteredRows = [];
       state.selectedListingId = null;
       state.detailImageIndex = 0;
-      state.chartConfig = { histogramField: "", categoryField: "", scatterX: "", scatterY: "" };
+      state.chartConfig = { histogramField: "", categoryField: "", scatterX: "", scatterY: "", boxplotField: "" };
+      state.ui = {
+        controlRibbonCollapsed: false,
+        mappingCollapsed: true,
+        advancedFiltersOpen: false,
+        tableSort: { key: "price", direction: "desc" }
+      };
       renderAll();
     }
 
@@ -3414,9 +4873,9 @@
         if (!state.selectedListingId) {
           return;
         }
-        const selectedCard = refs.listingList.querySelector(`[data-listing-id="${CSS.escape(state.selectedListingId)}"]`);
-        if (selectedCard) {
-          selectedCard.scrollIntoView({ behavior: "smooth", block: "center" });
+        const selectedRow = refs.listingList.querySelector(`[data-listing-id="${CSS.escape(state.selectedListingId)}"]`);
+        if (selectedRow) {
+          selectedRow.scrollIntoView({ behavior: "smooth", block: "center" });
         }
       });
 
@@ -3424,6 +4883,21 @@
         state.filters.searchText = event.target.value || "";
         recomputeFilteredRows();
         renderAll();
+      });
+
+      refs.toggleRibbonBtn.addEventListener("click", () => {
+        state.ui.controlRibbonCollapsed = !state.ui.controlRibbonCollapsed;
+        syncChromeState();
+      });
+
+      refs.toggleMappingBtn.addEventListener("click", () => {
+        state.ui.mappingCollapsed = !state.ui.mappingCollapsed;
+        syncChromeState();
+      });
+
+      refs.toggleAdvancedBtn.addEventListener("click", () => {
+        state.ui.advancedFiltersOpen = !state.ui.advancedFiltersOpen;
+        syncChromeState();
       });
 
       refs.mappingGrid.addEventListener("change", (event) => {
@@ -3437,7 +4911,7 @@
         rebuildAnalyticsState();
       });
 
-      refs.filterGroups.addEventListener("input", (event) => {
+      refs.controlRibbon.addEventListener("input", (event) => {
         const target = event.target;
         const filterCard = target.closest("[data-filter-id]");
         if (!filterCard) {
@@ -3457,7 +4931,7 @@
         }
       });
 
-      refs.filterGroups.addEventListener("change", (event) => {
+      refs.controlRibbon.addEventListener("change", (event) => {
         const target = event.target;
         const filterCard = target.closest("[data-filter-id]");
         if (!filterCard) {
@@ -3489,12 +4963,32 @@
         renderCharts();
       });
 
+      refs.boxplotFieldSelect.addEventListener("change", (event) => {
+        state.chartConfig.boxplotField = event.target.value;
+        renderCharts();
+      });
+
       refs.listingList.addEventListener("click", (event) => {
-        const card = event.target.closest("[data-listing-id]");
-        if (!card) {
+        const sortButton = event.target.closest("[data-sort-key]");
+        if (sortButton) {
+          const sortKey = sortButton.dataset.sortKey;
+          if (state.ui.tableSort.key === sortKey) {
+            state.ui.tableSort.direction = state.ui.tableSort.direction === "asc" ? "desc" : "asc";
+          } else {
+            state.ui.tableSort = {
+              key: sortKey,
+              direction: ["title", "location", "propertyType"].includes(sortKey) ? "asc" : "desc"
+            };
+          }
+          renderListingExplorer();
           return;
         }
-        state.selectedListingId = card.dataset.listingId;
+
+        const row = event.target.closest("[data-listing-id]");
+        if (!row) {
+          return;
+        }
+        state.selectedListingId = row.dataset.listingId;
         state.detailImageIndex = 0;
         renderAll();
       });
